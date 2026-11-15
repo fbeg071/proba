@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name: PZ Replace File
- * Description: Zamjenjuje fizički fajl u uploads folderu novim fajlom ISTOG imena (URL ostaje isti). Alati → PZ Replace File.
+ * Plugin Name: PROZONE Media Replace
+ * Description: Zamjenjuje fizički fajl u uploads folderu novim fajlom ISTOG imena (URL ostaje isti). Alati → PROZONE Media Replace.
  * Version: 1.0.0
  * Requires PHP: 7.2
  * License: GPLv2 or later
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 add_action( 'admin_menu', function () {
-	add_management_page( 'PZ Replace File', 'PZ Replace File', 'upload_files', 'pz-replace-file', 'pzrf_page' );
+	add_management_page( 'PROZONE Media Replace', 'PROZONE Media Replace', 'upload_files', 'prozone-media-replace', 'pzrf_page' );
 } );
 
 /** Nađi sve fajlove u uploads folderu s datim imenom. */
@@ -86,7 +86,7 @@ function pzrf_page() {
 	}
 	?>
 	<div class="wrap">
-		<h1>PZ Replace File</h1>
+		<h1>PROZONE Media Replace</h1>
 		<p>Odaberite jedan ili više fajlova. Svaki se upari s fajlom <b>istog imena</b> u uploads folderu i prepiše ga (URL ostaje isti). Stari fajl se sprema u <code>uploads/pz-replace-backup/</code>. Nakon zamjene poziva se LiteSpeed Purge All, ako je plugin aktivan.</p>
 		<?php foreach ( $log as $l ) : ?>
 			<div class="notice notice-<?php echo 'ok' === $l[0] ? 'success' : 'error'; ?>"><p><?php echo esc_html( $l[1] ); ?></p></div>
