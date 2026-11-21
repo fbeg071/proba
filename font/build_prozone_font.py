@@ -416,10 +416,9 @@ def n_0():
 
 
 def n_1():
-    # tabelarna sirina (kao ostali brojevi), znak centriran -> cijene se poravnavaju u kolonama
-    w1 = 420
-    g = U(box(w1 - S, 0, w1, CAP), Polygon([(w1 - S, CAP), (w1 - S, CAP - H - 20), (40, CAP - H - 120), (40, CAP - 120)]))
-    return affinity.translate(g, (DW - w1) / 2 + 20, 0), DW
+    # uski (proporcionalni) 1 - odabrao vlasnik (varijanta B): normalni razmaci u tekstu
+    W = 420
+    return U(box(W - S, 0, W, CAP), Polygon([(W - S, CAP), (W - S, CAP - H - 20), (40, CAP - H - 120), (40, CAP - 120)])), W
 
 
 def n_2():
