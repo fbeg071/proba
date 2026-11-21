@@ -170,8 +170,12 @@ def g_J():
 
 def g_K():
     W = 780
-    up = stroke((S + 40, MID - 30), (W - S * 0.6, CAP), S * 1.25)
-    dn = stroke((S + 140, MID + 20), (W - S * 0.6, 0), S * 1.25)
+    x0, y0 = S - 30, MID - 90                     # pocetak gornjeg kraka (unutar stabla)
+    x1 = W - DIAG / 2
+    up = stroke((x0, y0), (x1, CAP), DIAG)
+    t = 0.32                                       # donji krak polazi sa sredisnje linije gornjeg
+    xs, ys = x0 + t * (x1 - x0), y0 + t * (CAP - y0)
+    dn = stroke((xs, ys), (x1, 0), DIAG)
     return band(U(box(0, 0, S, CAP), up, dn)).intersection(box(0, 0, W, CAP)), W
 
 
@@ -249,13 +253,13 @@ def g_W():
 
 def g_X():
     W = 820
-    w = S * 1.3
+    w = DIAG
     return band(U(stroke((w / 2, CAP), (W - w / 2, 0), w), stroke((W - w / 2, CAP), (w / 2, 0), w))), W
 
 
 def g_Y():
     W = 800
-    w = S * 1.25
+    w = DIAG
     y0 = 300
     v = U(stroke((w / 2, CAP), (W / 2, y0), w), stroke((W - w / 2, CAP), (W / 2, y0), w))
     return band(U(v, box(W / 2 - S / 2, 0, W / 2 + S / 2, y0 + 40))).intersection(box(0, 0, W, CAP)), W
