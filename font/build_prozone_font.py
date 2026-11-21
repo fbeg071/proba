@@ -29,6 +29,7 @@ RI = 110           # unutrasnje zaobljenje (izmjereno na O iz loga)
 SLANT = 0.175      # nagib izmjeren iz loga (tan ~9.9 stepeni)
 SB = 55            # razmak lijevo/desno od slova
 MID = CAP / 2
+DIAG = 170         # horizontalna debljina kosih linija (mjerilo: slovo A)
 UPM = 1000
 
 
@@ -234,13 +235,13 @@ def g_U():
 
 def g_V():
     W = 820
-    v = U(stroke((S * 0.62, CAP), (W / 2, 0), S * 1.25), stroke((W - S * 0.62, CAP), (W / 2, 0), S * 1.25))
+    v = U(stroke((DIAG / 2, CAP), (W / 2, 0), DIAG), stroke((W - DIAG / 2, CAP), (W / 2, 0), DIAG))
     return band(v).intersection(box(0, 0, W, CAP)), W
 
 
 def g_W():
     W = 1120
-    w = S * 1.2
+    w = DIAG
     parts = [stroke((w / 2, CAP), (W * 0.26, 0), w), stroke((W * 0.5, CAP), (W * 0.26, 0), w),
              stroke((W * 0.5, CAP), (W * 0.74, 0), w), stroke((W - w / 2, CAP), (W * 0.74, 0), w)]
     return band(U(*parts)).intersection(box(0, 0, W, CAP)), W
