@@ -178,14 +178,20 @@ def g_J():
 
 
 def g_K():
+    # Varijanta 1 (odabrao vlasnik): gornji krak deblji (190) i produzen do kraja u stablo
+    # (bez stepenika ispod spoja); donji krak izlazi sa sredisnje linije gornjeg.
     W = 780
-    x0, y0 = S - 30, MID - 90                     # pocetak gornjeg kraka (unutar stabla)
-    x1 = W - DIAG / 2
-    up = stroke((x0, y0), (x1, CAP), DIAG)
-    t = 0.32                                       # donji krak polazi sa sredisnje linije gornjeg
+    UP = 190                                       # debljina gornjeg kraka (horizontalno)
+    x1 = W - UP / 2
+    x0, y0 = S - UP / 2, 160                       # kraj gornjeg kraka poravnat s desnom ivicom stabla
+    up = stroke((x0, y0), (x1, CAP), UP)
+    up = up.intersection(box(0, 0, W, CAP)).difference(box(-10, -10, 0, CAP + 10))
+    t = 0.42                                       # donji krak polazi sa sredisnje linije gornjeg
     xs, ys = x0 + t * (x1 - x0), y0 + t * (CAP - y0)
-    dn = stroke((xs, ys), (x1, 0), DIAG)
-    return band(U(box(0, 0, S, CAP), up, dn)).intersection(box(0, 0, W, CAP)), W
+    dn = stroke((xs, ys), (W - DIAG / 2, 0), DIAG)
+    k = U(box(0, 0, S, CAP), up, dn).intersection(box(0, 0, W, CAP))
+    # dio gornjeg kraka lijevo od stabla ne smije viriti ispod spoja
+    return k, W
 
 
 def g_L():
