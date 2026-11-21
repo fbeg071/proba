@@ -396,8 +396,23 @@ def g_Dj():
 DW = 680
 
 
+# Brojevi u stilu trenutnih slova: lukovi kao P/S/B (vanjski 235/205 i unutrasnji 48/52,
+# skalirano na pola visine), krajevi ravno odsjeceni kao C/S, 0 kao uzi O iz loga.
+_DM0, _DM1 = MID - 76, MID + 76                       # srednja greda brojeva (kao S/B)
+_DK = _DM1 / (CAP - 226)
+_DA, _DB = 235 * _DK, 205 * _DK                        # gornji / donji vanjski radijus luka P
+
+
+def _bowl_r(W, y0, y1, open_left=True):
+    """Desni luk (kao P) od y0 do y1; rupa otvorena lijevo (kraj odsjecen) ili zatvorena."""
+    outer = rr(0, y0, W, y1, tr=_DA, br=_DB)
+    x0 = -1 if open_left else S
+    return outer.difference(rr(x0, y0 + H, W - S, y1 - H, tr=48, br=52))
+
+
 def n_0():
-    return ring(DW), DW
+    W = DW
+    return allr(0, 0, W, CAP, 222).difference(allr(181, 152, W - 181, 548, 109)), W
 
 
 def n_1():
@@ -408,15 +423,13 @@ def n_1():
 
 def n_2():
     W = DW
-    top = rr(0, MID - H / 2, W, CAP, tr=RO).difference(rr(-1, MID + H / 2, W - S, CAP - H, tr=RI))
-    return U(top, box(0, 0, S, MID + H / 2), box(0, 0, W, H)), W
+    top = _bowl_r(W, _DM0, CAP)                         # gornji luk, kraj gore lijevo odsjecen
+    return U(top, box(0, 0, S, _DM1), box(0, 0, W, H)), W
 
 
 def n_3():
     W = DW
-    o = rr(0, 0, W, CAP, tr=RO, br=RO)
-    o = o.difference(rr(-1, MID + H / 2, W - S, CAP - H, tr=RI)).difference(rr(-1, H, W - S, MID - H / 2, br=RI))
-    return o, W
+    return U(_bowl_r(W, _DM0, CAP), _bowl_r(W, 0, _DM1)), W
 
 
 def n_4():
@@ -426,26 +439,38 @@ def n_4():
 
 def n_5():
     W = DW
-    # donji lijevi kraj ravno odsjecen kao kod S
-    low = rr(0, 0, W, MID + H / 2, tr=RO, br=RO).difference(rr(-1, H, W - S, MID - H / 2, tr=RI, br=RI))
-    return U(low, box(0, MID - H / 2, S, CAP), box(0, CAP - H, W * 0.90, CAP)), W   # gornja greda 90%
+    low = _bowl_r(W, 0, _DM1)                           # donji luk kao S, kraj dolje lijevo odsjecen
+    return U(low, box(0, _DM0, S, CAP), box(0, CAP - H, W * 0.90, CAP)), W   # gornja greda 90% kao S
 
 
 def n_6():
     W = DW
-    o = allr(0, 0, W, CAP, RO).difference(allr(S, H, W - S, MID - H / 2, RI))
-    return o.difference(rr(S, MID + H / 2, W + 1, CAP - H, tl=RI)), W
+    low = rr(0, 0, W, _DM1, tr=_DA, br=_DB, bl=_DA).difference(rr(S, H, W - S, _DM0, tl=52, tr=48, br=52, bl=48))
+    up = rr(0, _DM0, W, CAP, tl=_DB).difference(rr(S, _DM1, W + 1, CAP - H, tl=52))
+    up = up.difference(box(W * 0.90, CAP - H - 1, W + 1, CAP + 1))             # gornja greda 90% kao S
+    up = up.difference(box(S, _DM0 - 1, W + 1, _DM1))                           # srednju gredu daje donji luk
+    return U(low, up), W
 
 
 def n_7():
     W = DW
-    return U(box(0, CAP - H, W, CAP), Polygon([(W - S * 1.25, CAP - H), (W, CAP - H), (W * 0.40, 0), (W * 0.40 - S * 1.25, 0)])), W
+    PERP = 155
+    xb = W * 0.40                                        # donji kraj sredisnje linije
+    w = 225
+    for _ in range(8):
+        xt = W - w / 2
+        w = PERP * math.hypot(xt - xb, CAP - H) / (CAP - H)
+    diag = stroke((W - w / 2, CAP - H), (xb, 0), w)
+    return U(box(0, CAP - H, W, CAP), diag).intersection(box(0, 0, W, CAP)), W
 
 
 def n_8():
     W = DW
-    o = allr(0, 0, W, CAP, RO).difference(allr(S, H, W - S, MID - H / 2, RI))
-    return o.difference(allr(S + 10, MID + H / 2, W - S - 10, CAP - H, RI)), W
+    up = rr(15, _DM0, W - 15, CAP, tl=_DA, tr=_DA, bl=_DB, br=_DB).difference(
+        rr(S + 15, _DM1, W - 15 - S, CAP - H, tl=48, tr=48, bl=52, br=52))
+    lo = rr(0, 0, W, _DM1, tl=_DA, tr=_DA, bl=_DB, br=_DB).difference(
+        rr(S, H, W - S, _DM0, tl=48, tr=48, bl=52, br=52))
+    return U(up, lo), W
 
 
 def n_9():
