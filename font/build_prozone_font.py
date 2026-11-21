@@ -438,8 +438,13 @@ def n_3():
 
 
 def n_4():
+    # klasican 4 (varijanta B): kosa linija od vrha stabla do grede
     W = DW
-    return U(box(W - S - 40, 0, W - 40, CAP), box(0, 210, W, 210 + H), box(0, 210, S, CAP)), W
+    st = box(W - S - 40, 0, W - 40, CAP)
+    bar = box(0, 200, W, 200 + H)
+    xt = W - S - 30
+    d = Polygon([(xt - 230, CAP), (xt, CAP), (230, 200 + H), (0, 200 + H)])
+    return U(st, bar, d).intersection(box(0, 0, W, CAP)), W
 
 
 def n_5():
@@ -474,10 +479,11 @@ def n_7():
 
 def n_8():
     W = DW
+    # varijanta B: uglovi rupa uz srednju gredu ostri, ostali zaobljeni
     up = rr(15, _DM0, W - 15, CAP, tl=_DA, tr=_DA, bl=_DB, br=_DB).difference(
-        rr(S + 15, _DM1, W - 15 - S, CAP - H, tl=48, tr=48, bl=52, br=52))
+        rr(S + 15, _DM1, W - 15 - S, CAP - H, tl=48, tr=48, bl=0, br=0))
     lo = rr(0, 0, W, _DM1, tl=_DA, tr=_DA, bl=_DB, br=_DB).difference(
-        rr(S, H, W - S, _DM0, tl=48, tr=48, bl=52, br=52))
+        rr(S, H, W - S, _DM0, tl=0, tr=0, bl=52, br=52))
     return U(up, lo), W
 
 
