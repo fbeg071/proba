@@ -123,8 +123,9 @@ def g_B():
 
 def g_C():
     # krajevi C odsjeceni ravno (bez zaobljenog ugla na desnoj strani)
-    W = 860
-    return rr(0, 0, W, CAP, tl=RO, bl=RO).difference(rr(S, H, W + 1, CAP - H, tl=RI, bl=RI)), W
+    # mjere kao O iz loga (sirina 887, zaobljenja 222 / 109, rupa 181..707 x 152..550)
+    W = 887
+    return rr(0, 0, W, CAP, tl=222, bl=222).difference(rr(181, 152, W + 1, 550, tl=109, bl=109)), W
 
 
 def g_D():
