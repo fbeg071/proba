@@ -199,9 +199,16 @@ def g_L():
 
 
 def g_M():
-    W = 960
-    v = U(stroke((S * 0.6, CAP), (W / 2, 150), S * 1.3), stroke((W - S * 0.6, CAP), (W / 2, 150), S * 1.3))
-    return band(U(box(0, 0, S, CAP), box(W - S, 0, W, CAP), v)).intersection(box(0, 0, W, CAP)), W
+    # M u stilu N iz loga: stabla 181, kose linije iste okomite debljine kao N (~160),
+    # krecu iz gornjih uglova kao kod N i spajaju se na baseline u sredini.
+    W = 1100
+    T = 160                                        # okomita debljina kose linije (kao N)
+    top_c, bot_c = 172, W / 2                      # sredisnja linija lijeve kose linije: vrh / dno
+    w = T * math.sqrt(1 + ((bot_c - top_c) / CAP) ** 2)   # horizontalna debljina
+    left = stroke((top_c, CAP), (bot_c, 0), w)
+    right = stroke((W - top_c, CAP), (W - bot_c, 0), w)
+    stems = U(box(0, 0, 181, CAP), box(W - 181, 0, W, CAP))
+    return U(stems, left, right).intersection(box(0, 0, W, CAP)), W
 
 
 def g_N_geo():
