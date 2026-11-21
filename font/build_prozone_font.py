@@ -234,15 +234,15 @@ def g_U():
 
 def g_V():
     W = 820
-    v = U(stroke((S * 0.62, CAP), (W / 2, S * 0.4), S * 1.25), stroke((W - S * 0.62, CAP), (W / 2, S * 0.4), S * 1.25))
+    v = U(stroke((S * 0.62, CAP), (W / 2, 0), S * 1.25), stroke((W - S * 0.62, CAP), (W / 2, 0), S * 1.25))
     return band(v).intersection(box(0, 0, W, CAP)), W
 
 
 def g_W():
     W = 1120
     w = S * 1.2
-    parts = [stroke((w / 2, CAP), (W * 0.26, w * 0.35), w), stroke((W * 0.5, CAP), (W * 0.26, w * 0.35), w),
-             stroke((W * 0.5, CAP), (W * 0.74, w * 0.35), w), stroke((W - w / 2, CAP), (W * 0.74, w * 0.35), w)]
+    parts = [stroke((w / 2, CAP), (W * 0.26, 0), w), stroke((W * 0.5, CAP), (W * 0.26, 0), w),
+             stroke((W * 0.5, CAP), (W * 0.74, 0), w), stroke((W - w / 2, CAP), (W * 0.74, 0), w)]
     return band(U(*parts)).intersection(box(0, 0, W, CAP)), W
 
 
