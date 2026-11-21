@@ -122,8 +122,9 @@ def g_B():
 
 
 def g_C():
+    # krajevi C odsjeceni ravno (bez zaobljenog ugla na desnoj strani)
     W = 860
-    return allr(0, 0, W, CAP, RO).difference(rr(S, H, W + 1, CAP - H, tl=RI, bl=RI)), W
+    return rr(0, 0, W, CAP, tl=RO, bl=RO).difference(rr(S, H, W + 1, CAP - H, tl=RI, bl=RI)), W
 
 
 def g_D():
@@ -151,9 +152,12 @@ def g_F():
 
 
 def g_G():
+    # gornji kraj odsjecen ravno kao kod C; donji desni ugao ostaje zaobljen
     W = 860
-    c, _ = g_C()
-    return U(c, rr(W - S, 0, W, MID, br=RO), box(W * 0.46, MID - H, W, MID)), W
+    g = rr(0, 0, W, CAP, tl=RO, bl=RO, br=RO).difference(rr(S, H, W - S, CAP - H, tl=RI, bl=RI, br=RI))
+    b0, b1 = 300, 300 + H * 0.9            # precka G; donja rupa ostaje visine ~150
+    g = g.difference(box(W - S - 1, b1, W + 1, CAP - H))
+    return U(g, box(W * 0.48, b0, W - S + 1, b1)), W
 
 
 def g_H():
