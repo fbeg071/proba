@@ -283,8 +283,13 @@ def g_W():
 
 
 def g_X():
+    # kose linije iste okomite debljine kao kod V (V: horizontalno DIAG, nagib (W_V/2 - DIAG/2) / CAP)
     W = 820
+    wv, Wv = DIAG, 820
+    perp = wv * CAP / math.hypot(CAP, Wv / 2 - wv / 2)          # okomita debljina linije V (~154)
     w = DIAG
+    for _ in range(5):                                           # horizontalna debljina za isti okomiti presjek
+        w = perp * math.hypot(CAP, W - w) / CAP
     return band(U(stroke((w / 2, CAP), (W - w / 2, 0), w), stroke((W - w / 2, CAP), (w / 2, 0), w))), W
 
 
