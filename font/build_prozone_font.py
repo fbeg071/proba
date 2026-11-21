@@ -30,6 +30,7 @@ SLANT = 0.175      # nagib izmjeren iz loga (tan ~9.9 stepeni)
 SB = 55            # razmak lijevo/desno od slova
 MID = CAP / 2
 DIAG = 170         # horizontalna debljina kosih linija (mjerilo: slovo A)
+MB0, MB1 = 226, 377   # srednja greda slova - poravnata s donjom gredom luka P i R iz loga
 UPM = 1000
 
 
@@ -106,7 +107,7 @@ def g_A():
     left = stroke((DIAG / 2, 0), (xl, CAP), DIAG)
     right = stroke((W - DIAG / 2, 0), (W - xl, CAP), DIAG)
     hull = Polygon([(0, 0), (W / 2 - top / 2, CAP), (W / 2 + top / 2, CAP), (W, 0)])
-    bar = box(0, 210, W, 210 + H).intersection(hull)
+    bar = box(0, MB0, W, MB1).intersection(hull)
     return band(U(left, right, bar, box(W / 2 - top / 2 + 20, CAP - H, W / 2 + top / 2 - 20, CAP))), W
 
 
@@ -114,7 +115,7 @@ def g_B():
     # B u stilu P iz loga. Donji luk = luk slova P (sirina 780, zaobljenja 235/205 i 48/52),
     # proporcionalno spusten na visinu polovine. Gornji luk: isti oblik luka kao P, 30 jedinica uzi.
     W = 780
-    m0, m1 = MID - 76, MID + 76            # srednja precka
+    m0, m1 = MB0, MB1                      # srednja precka (kao P i R)
     k = m1 / (CAP - 226)                   # odnos visine donjeg luka i luka P
     lo = rr(0, 0, W, m1, tr=235 * k, br=205 * k).difference(rr(181, 151, W - S, m0, tr=48, br=52))
     up = rr(0, m0, W - 30, CAP, tr=235 * k, br=205 * k).difference(rr(181, m1, W - 30 - S, CAP - 151, tr=48, br=52))
@@ -133,7 +134,7 @@ def g_D():
 
 
 def e_std(W=740):
-    return U(box(0, 0, S, CAP), box(0, 0, W, H), box(0, MID - H / 2, W * 0.95, MID + H / 2), box(0, CAP - H, W, CAP))
+    return U(box(0, 0, S, CAP), box(0, 0, W, H), box(0, MB0, W * 0.95, MB1), box(0, CAP - H, W, CAP))
 
 
 def g_E():
@@ -148,7 +149,7 @@ def g_E_logo_geo():
 
 def g_F():
     W = 700
-    return U(box(0, 0, S, CAP), box(0, MID - H / 2, W * 0.95, MID + H / 2), box(0, CAP - H, W, CAP)), W
+    return U(box(0, 0, S, CAP), box(0, MB0, W * 0.95, MB1), box(0, CAP - H, W, CAP)), W
 
 
 def g_G():
@@ -162,7 +163,7 @@ def g_G():
 
 def g_H():
     W = 780
-    return U(box(0, 0, S, CAP), box(W - S, 0, W, CAP), box(0, MID - H / 2, W, MID + H / 2)), W
+    return U(box(0, 0, S, CAP), box(W - S, 0, W, CAP), box(0, MB0, W, MB1)), W
 
 
 def g_I():
@@ -229,8 +230,8 @@ def g_R_geo():
 def g_S():
     W = 780
     o = allr(0, 0, W, CAP, RO)
-    o = o.difference(rr(S, MID + H / 2, W + 1, CAP - H, tl=RI))
-    o = o.difference(rr(-1, H, W - S, MID - H / 2, br=RI))
+    o = o.difference(rr(S, MB1, W + 1, CAP - H, tl=RI))
+    o = o.difference(rr(-1, H, W - S, MB0, br=RI))
     return o, W
 
 
@@ -322,7 +323,7 @@ def g_N():
 
 def g_E_logo():
     W = 772
-    return U(box(0, 0, W, 151), box(0, 277, W - 21, 427), box(0, 549, W - 2, CAP)), W
+    return U(box(0, 0, W, 151), box(0, MB0, W - 21, MB1), box(0, 549, W - 2, CAP)), W
 
 
 # ------------------------------------------------------------ dijakritici
@@ -343,7 +344,7 @@ def with_mark(fn, mark):
 
 def g_Dj():
     g, W = g_D()
-    return U(g, box(-70, MID - 60, S + 150, MID + 60)), W
+    return U(g, box(-70, (MB0 + MB1) / 2 - 60, S + 150, (MB0 + MB1) / 2 + 60)), W
 
 
 # ------------------------------------------------------------------ brojevi
