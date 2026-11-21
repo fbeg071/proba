@@ -1,0 +1,544 @@
+"""
+PROZONE Display - originalni geometrijski font prema PROZONE logu.
+
+Proporcije su izmjerene iz loga (visina velikih slova 175 px -> 700 jedinica):
+  vertikalna linija 45 px -> 180, horizontalna 38 px -> 152, nagib ~10 stepeni.
+Slova su crtana od nule (pravougaonici, zaobljeni ugaonici, dijagonale),
+bez preuzimanja tudjih fontova.
+
+Pokretanje:  python3 build_prozone_font.py <izlazni_folder>
+Izlaz:       ProzoneDisplay.ttf/.woff2 (klasicno E) i ProzoneLogo.ttf/.woff2 (E kao u logu)
+"""
+import math
+import sys
+from pathlib import Path
+
+from fontTools.fontBuilder import FontBuilder
+from fontTools.pens.ttGlyphPen import TTGlyphPen
+from shapely import affinity
+from shapely.geometry import LineString, MultiPolygon, Polygon, box
+from shapely.geometry.polygon import orient
+from shapely.ops import unary_union
+
+# ---------------------------------------------------------------- parametri
+CAP = 700          # visina velikih slova
+S = 180            # debljina vertikalnih linija
+H = 152            # debljina horizontalnih linija
+RO = 120           # vanjsko zaobljenje
+RI = 40            # unutrasnje zaobljenje
+SLANT = 0.18       # nagib (tan ~10.2 stepeni)
+SB = 55            # razmak lijevo/desno od slova
+MID = CAP / 2
+UPM = 1000
+
+
+# ---------------------------------------------------------------- pomocne
+def rr(x0, y0, x1, y1, tl=0, tr=0, br=0, bl=0, n=10):
+    """Pravougaonik sa zaobljenim pojedinacnim uglovima."""
+    pts = []
+
+    def arc(cx, cy, r, a0, a1):
+        if r <= 0:
+            return [(cx, cy)]
+        return [(cx + r * math.cos(math.radians(a0 + (a1 - a0) * i / n)),
+                 cy + r * math.sin(math.radians(a0 + (a1 - a0) * i / n))) for i in range(n + 1)]
+
+    pts += arc(x0 + bl, y0 + bl, bl, 180, 270) if bl else [(x0, y0)]
+    pts += arc(x1 - br, y0 + br, br, 270, 360) if br else [(x1, y0)]
+    pts += arc(x1 - tr, y1 - tr, tr, 0, 90) if tr else [(x1, y1)]
+    pts += arc(x0 + tl, y1 - tl, tl, 90, 180) if tl else [(x0, y1)]
+    return Polygon(pts)
+
+
+def allr(x0, y0, x1, y1, r):
+    return rr(x0, y0, x1, y1, r, r, r, r)
+
+
+def stroke(p0, p1, w):
+    """Dijagonalna linija debljine w (mjereno horizontalno) izmedju dvije tacke."""
+    (x0, y0), (x1, y1) = p0, p1
+    return Polygon([(x0 - w / 2, y0), (x0 + w / 2, y0), (x1 + w / 2, y1), (x1 - w / 2, y1)])
+
+
+def U(*g):
+    return unary_union(list(g))
+
+
+def band(geom, y0=0, y1=CAP, x0=-2000, x1=4000):
+    return geom.intersection(box(x0, y0, x1, y1))
+
+
+# ---------------------------------------------------------------- slova
+G = {}  # ime -> (geometrija, sirina)
+
+
+def ring(W, h=CAP):
+    return allr(0, 0, W, h, RO).difference(allr(S, H, W - S, h - H, RI))
+
+
+def g_A():
+    W = 820
+    outer = Polygon([(0, 0), (W * 0.36, CAP), (W * 0.64, CAP), (W, 0)])
+    d = S * 1.05
+    inner = Polygon([(d, 0), (W * 0.36 + d * 0.45, CAP - H), (W * 0.64 - d * 0.45, CAP - H), (W - d, 0)])
+    bar = box(0, 170, W, 170 + H * 0.9)
+    shape = outer.difference(inner).union(bar.intersection(outer))
+    return shape, W
+
+
+def g_B():
+    W = 720
+    o = rr(0, 0, W, CAP, tr=RO, br=RO)
+    c1 = rr(S, H, W - S, MID - H / 2, tr=RI, br=RI)
+    c2 = rr(S, MID + H / 2, W - S, CAP - H, tr=RI, br=RI)
+    notch = box(W - 60, MID - H / 2 + 40, W + 1, MID + H / 2 - 40)
+    return o.difference(c1).difference(c2), W
+
+
+def g_C():
+    W = 800
+    return allr(0, 0, W, CAP, RO).difference(rr(S, H, W + 1, CAP - H, tl=RI, bl=RI)), W
+
+
+def g_D():
+    W = 800
+    return rr(0, 0, W, CAP, tr=RO, br=RO).difference(rr(S, H, W - S, CAP - H, tr=RI, br=RI)), W
+
+
+def e_std(W=740):
+    return U(box(0, 0, S, CAP), box(0, 0, W, H), box(0, MID - H / 2, W * 0.88, MID + H / 2), box(0, CAP - H, W, CAP))
+
+
+def g_E():
+    return e_std(), 740
+
+
+def g_E_logo():
+    W = 776
+    gap = (CAP - 3 * H) / 2
+    return U(box(0, 0, W, H), box(W * 0.03, H + gap, W, 2 * H + gap), box(0, CAP - H, W, CAP)), W
+
+
+def g_F():
+    W = 700
+    return U(box(0, 0, S, CAP), box(0, MID - H / 2 - 20, W * 0.86, MID + H / 2 - 20), box(0, CAP - H, W, CAP)), W
+
+
+def g_G():
+    W = 800
+    c, _ = g_C()
+    return U(c, rr(W - S, 0, W, MID, br=RO), box(W * 0.46, MID - H, W, MID)), W
+
+
+def g_H():
+    W = 780
+    return U(box(0, 0, S, CAP), box(W - S, 0, W, CAP), box(0, MID - H / 2, W, MID + H / 2)), W
+
+
+def g_I():
+    return box(0, 0, S, CAP), S
+
+
+def g_J():
+    W = 660
+    o = rr(0, 0, W, CAP, bl=RO, br=RO).difference(rr(S, H, W - S, CAP + 1, bl=RI, br=RI))
+    return o.difference(box(-1, 270, S + 1, CAP + 1)), W
+
+
+def g_K():
+    W = 780
+    up = stroke((S + 40, MID - 30), (W - S * 0.6, CAP), S * 1.25)
+    dn = stroke((S + 140, MID + 20), (W - S * 0.6, 0), S * 1.25)
+    return band(U(box(0, 0, S, CAP), up, dn)).intersection(box(0, 0, W, CAP)), W
+
+
+def g_L():
+    return U(box(0, 0, S, CAP), box(0, 0, 660, H)), 660
+
+
+def g_M():
+    W = 960
+    v = U(stroke((S * 0.6, CAP), (W / 2, 150), S * 1.3), stroke((W - S * 0.6, CAP), (W / 2, 150), S * 1.3))
+    return band(U(box(0, 0, S, CAP), box(W - S, 0, W, CAP), v)).intersection(box(0, 0, W, CAP)), W
+
+
+def g_N():
+    W = 860
+    diag = Polygon([(0, CAP), (S * 1.65, CAP), (W, 0), (W - S * 1.65, 0)])
+    return U(box(0, 0, S, CAP), box(W - S, 0, W, CAP), diag), W
+
+
+def g_O():
+    W = 860
+    return ring(W), W
+
+
+def g_P():
+    W = 680
+    bowl = rr(0, 270, W, CAP, tr=RO, br=RO).difference(rr(S, 270 + H, W - S, CAP - H, tr=RI, br=RI))
+    return U(box(0, 0, S, CAP), bowl), W
+
+
+def g_Q():
+    W = 860
+    tail = Polygon([(W * 0.50, H + 60), (W * 0.50 + S * 1.1, H + 60), (W + 40, -90), (W + 40 - S * 1.1, -90)])
+    return U(ring(W), tail), W + 40
+
+
+def g_R():
+    W = 700
+    p, _ = g_P()
+    leg = Polygon([(W * 0.40, 300), (W * 0.40 + S * 1.15, 300), (W + 60, 0), (W + 60 - S * 1.15, 0)])
+    return U(p, leg), W + 60
+
+
+def g_S():
+    W = 780
+    o = allr(0, 0, W, CAP, RO)
+    o = o.difference(rr(S, MID + H / 2, W + 1, CAP - H, tl=RI))
+    o = o.difference(rr(-1, H, W - S, MID - H / 2, br=RI))
+    return o, W
+
+
+def g_T():
+    W = 760
+    return U(box(0, CAP - H, W, CAP), box(W / 2 - S / 2, 0, W / 2 + S / 2, CAP)), W
+
+
+def g_U():
+    W = 800
+    return rr(0, 0, W, CAP, bl=RO, br=RO).difference(rr(S, H, W - S, CAP + 1, bl=RI, br=RI)), W
+
+
+def g_V():
+    W = 820
+    v = U(stroke((S * 0.62, CAP), (W / 2, S * 0.4), S * 1.25), stroke((W - S * 0.62, CAP), (W / 2, S * 0.4), S * 1.25))
+    return band(v).intersection(box(0, 0, W, CAP)), W
+
+
+def g_W():
+    W = 1120
+    w = S * 1.2
+    parts = [stroke((w / 2, CAP), (W * 0.26, w * 0.35), w), stroke((W * 0.5, CAP), (W * 0.26, w * 0.35), w),
+             stroke((W * 0.5, CAP), (W * 0.74, w * 0.35), w), stroke((W - w / 2, CAP), (W * 0.74, w * 0.35), w)]
+    return band(U(*parts)).intersection(box(0, 0, W, CAP)), W
+
+
+def g_X():
+    W = 820
+    w = S * 1.3
+    return band(U(stroke((w / 2, CAP), (W - w / 2, 0), w), stroke((W - w / 2, CAP), (w / 2, 0), w))), W
+
+
+def g_Y():
+    W = 800
+    w = S * 1.25
+    y0 = 300
+    v = U(stroke((w / 2, CAP), (W / 2, y0), w), stroke((W - w / 2, CAP), (W / 2, y0), w))
+    return band(U(v, box(W / 2 - S / 2, 0, W / 2 + S / 2, y0 + 40))).intersection(box(0, 0, W, CAP)), W
+
+
+def g_Z():
+    W = 840
+    diag = Polygon([(W - S * 1.5, CAP - H), (W, CAP - H), (S * 1.5, H), (0, H)])
+    return U(box(0, CAP - H, W, CAP), box(0, 0, W, H), diag), W
+
+
+# ------------------------------------------------------------ dijakritici
+def caron(W, y=CAP + 70):
+    w = 120
+    return U(stroke((W / 2 - 150, y + 150), (W / 2, y), w), stroke((W / 2 + 150, y + 150), (W / 2, y), w)).intersection(
+        box(-500, y, 3000, y + 150))
+
+
+def acute(W, y=CAP + 70):
+    return Polygon([(W / 2 - 40, y), (W / 2 + 90, y), (W / 2 + 260, y + 150), (W / 2 + 130, y + 150)])
+
+
+def with_mark(fn, mark):
+    g, W = fn()
+    return U(g, mark(W)), W
+
+
+def g_Dj():
+    g, W = g_D()
+    return U(g, box(-70, MID - 60, S + 150, MID + 60)), W
+
+
+# ------------------------------------------------------------------ brojevi
+DW = 680
+
+
+def n_0():
+    return ring(DW), DW
+
+
+def n_1():
+    W = 420
+    return U(box(W - S, 0, W, CAP), Polygon([(W - S, CAP), (W - S, CAP - H - 20), (40, CAP - H - 120), (40, CAP - 120)]),
+             ), W
+
+
+def n_2():
+    W = DW
+    top = rr(0, MID - H / 2, W, CAP, tr=RO).difference(rr(-1, MID + H / 2, W - S, CAP - H, tr=RI))
+    return U(top, box(0, 0, S, MID + H / 2), box(0, 0, W, H)), W
+
+
+def n_3():
+    W = DW
+    o = rr(0, 0, W, CAP, tr=RO, br=RO)
+    o = o.difference(rr(-1, MID + H / 2, W - S, CAP - H, tr=RI)).difference(rr(-1, H, W - S, MID - H / 2, br=RI))
+    return o, W
+
+
+def n_4():
+    W = DW
+    return U(box(W - S - 40, 0, W - 40, CAP), box(0, 210, W, 210 + H), box(0, 210, S, CAP)), W
+
+
+def n_5():
+    W = DW
+    low = rr(0, 0, W, MID + H / 2, tr=RO, br=RO, bl=RO).difference(rr(-1, H, W - S, MID - H / 2, tr=RI, br=RI))
+    return U(low, box(0, MID - H / 2, S, CAP), box(0, CAP - H, W, CAP)), W
+
+
+def n_6():
+    W = DW
+    o = allr(0, 0, W, CAP, RO).difference(allr(S, H, W - S, MID - H / 2, RI))
+    return o.difference(rr(S, MID + H / 2, W + 1, CAP - H, tl=RI)), W
+
+
+def n_7():
+    W = DW
+    return U(box(0, CAP - H, W, CAP), Polygon([(W - S * 1.25, CAP - H), (W, CAP - H), (W * 0.40, 0), (W * 0.40 - S * 1.25, 0)])), W
+
+
+def n_8():
+    W = DW
+    o = allr(0, 0, W, CAP, RO).difference(allr(S, H, W - S, MID - H / 2, RI))
+    return o.difference(allr(S + 10, MID + H / 2, W - S - 10, CAP - H, RI)), W
+
+
+def n_9():
+    g, W = n_6()
+    return affinity.scale(g, -1, -1, origin=(W / 2, CAP / 2)), W
+
+
+# ---------------------------------------------------------- interpunkcija
+def p_space():
+    return Polygon(), 260
+
+
+def p_period():
+    return box(0, 0, S, H + 10), S
+
+
+def p_comma():
+    return U(box(0, 0, S, H + 10), Polygon([(0, 0), (S, 0), (S * 0.55, -140), (-40, -140)])), S
+
+
+def p_colon():
+    return U(box(0, 0, S, H + 10), box(0, 380, S, 380 + H + 10)), S
+
+
+def p_semicolon():
+    c, _ = p_comma()
+    return U(c, box(0, 380, S, 380 + H + 10)), S
+
+
+def p_exclam():
+    return U(box(0, 0, S, H + 10), box(0, 230, S, CAP)), S
+
+
+def p_question():
+    W = 600
+    top = rr(0, MID - H / 2, W, CAP, tr=RO, br=RI).difference(rr(-1, MID + H / 2, W - S, CAP - H, tr=RI))
+    top = top.difference(box(-1, MID - H / 2 - 1, W * 0.30, MID + H / 2 + 1))
+    return U(top, box(W * 0.30, 230, W * 0.30 + S, MID + H / 2), box(W * 0.30, 0, W * 0.30 + S, H + 10)), W
+
+
+def p_hyphen():
+    return box(0, 260, 380, 260 + H), 380
+
+
+def p_plus():
+    W = 560
+    return U(box(0, 260, W, 260 + H), box(W / 2 - H / 2, 60, W / 2 + H / 2, 600)), W
+
+
+def p_equal():
+    W = 560
+    return U(box(0, 170, W, 170 + H * 0.85), box(0, 380, W, 380 + H * 0.85)), W
+
+
+def p_slash():
+    W = 520
+    return band(stroke((S * 0.65, -40), (W - S * 0.65, CAP + 40), S * 1.3), -40, CAP + 40).intersection(
+        box(0, -40, W, CAP + 40)), W
+
+
+def p_percent():
+    W = 900
+    a = allr(0, 400, 300, CAP, 60).difference(allr(90, 400 + 90, 210, CAP - 90, 20))
+    b = allr(W - 300, 0, W, 300, 60).difference(allr(W - 210, 90, W - 90, 210, 20))
+    return U(a, b, band(stroke((260, 0), (W - 260, CAP), 150))), W
+
+
+def p_quotesingle():
+    return box(0, CAP - 260, S * 0.8, CAP), S * 0.8
+
+
+def p_quotedbl():
+    return U(box(0, CAP - 260, S * 0.8, CAP), box(S * 0.8 + 90, CAP - 260, 2 * S * 0.8 + 90, CAP)), 2 * S * 0.8 + 90
+
+
+def p_parenleft():
+    W = 330
+    return rr(0, -120, W + 400, CAP + 120, tl=RO + 40, bl=RO + 40).difference(
+        rr(S, -120 + H, W + 401, CAP + 120 - H, tl=RI, bl=RI)).intersection(box(0, -130, W, CAP + 130)), W
+
+
+def p_parenright():
+    g, W = p_parenleft()
+    return affinity.scale(g, -1, 1, origin=(W / 2, 0)), W
+
+
+def p_euro():
+    W = 820
+    c, _ = g_C()
+    c = affinity.translate(c, 40, 0)
+    return U(c, box(0, MID + 30, W * 0.62, MID + 30 + H * 0.7), box(0, MID - 30 - H * 0.7, W * 0.62, MID - 30)), W + 40
+
+
+def p_numbersign():
+    W = 760
+    bars = U(box(0, 210, W, 210 + H * 0.8), box(0, 440, W, 440 + H * 0.8))
+    st = U(band(stroke((W * 0.30, 0), (W * 0.38, CAP), S * 0.9)), band(stroke((W * 0.62, 0), (W * 0.70, CAP), S * 0.9)))
+    return U(bars, st).intersection(box(0, 0, W, CAP)), W
+
+
+def p_asterisk():
+    W = 520
+    c = (W / 2, 520)
+    arms = [affinity.rotate(box(c[0] - 55, c[1], c[0] + 55, c[1] + 200), a, origin=c) for a in (0, 60, 120, 180, 240, 300)]
+    return U(*arms), W
+
+
+def p_underscore():
+    return box(0, -150, 640, -150 + H * 0.8), 640
+
+
+def p_ampersand():
+    # pojednostavljen geometrijski &: osmica otvorena desno + rep
+    W = 820
+    o = allr(0, 0, W - 120, CAP, RO).difference(allr(S, H, W - 120 - S, MID - H / 2, RI))
+    o = o.difference(allr(S + 10, MID + H / 2, W - 120 - S - 10, CAP - H, RI))
+    o = o.difference(box(W - 120 - S - 1, H, W, MID - H / 2))
+    return U(o, box(W - 120 - S, MID - H / 2 - 10, W, MID - H / 2 + H * 0.8)), W
+
+
+def p_at():
+    W = 880
+    o = allr(0, -60, W, CAP + 60, RO + 40).difference(allr(H, -60 + H, W - H, CAP + 60 - H, RI))
+    o = o.difference(box(W * 0.55, -61, W * 0.80, -60 + H + 1))
+    inner = allr(250, 160, W - H - 40, 540, 60).difference(allr(250 + S, 160 + H * 0.8, W - H - 40 - S, 540 - H * 0.8, 20))
+    return U(o, inner), W
+
+
+# ------------------------------------------------------------------- mapa
+def build_map(logo_e):
+    m = {}
+    caps = {c: globals()['g_' + c] for c in 'ABCDFGHIJKLMNOPQRSTUVWXYZ'}
+    caps['E'] = g_E_logo if logo_e else g_E
+    for c, fn in caps.items():
+        m[c] = fn
+    m['Č'] = lambda: with_mark(g_C, caron)
+    m['Ć'] = lambda: with_mark(g_C, acute)
+    m['Š'] = lambda: with_mark(g_S, caron)
+    m['Ž'] = lambda: with_mark(g_Z, caron)
+    m['Đ'] = g_Dj
+    for d in '0123456789':
+        m[d] = globals()['n_' + d]
+    m.update({' ': p_space, '.': p_period, ',': p_comma, ':': p_colon, ';': p_semicolon, '!': p_exclam,
+              '?': p_question, '-': p_hyphen, '+': p_plus, '=': p_equal, '/': p_slash, '%': p_percent,
+              "'": p_quotesingle, '"': p_quotedbl, '(': p_parenleft, ')': p_parenright, '€': p_euro,
+              '#': p_numbersign, '*': p_asterisk, '_': p_underscore, '@': p_at})
+    return m
+
+
+def to_glyph(geom):
+    pen = TTGlyphPen(None)
+    if geom.is_empty:
+        return pen.glyph()
+    polys = [geom] if isinstance(geom, Polygon) else [g for g in getattr(geom, 'geoms', []) if isinstance(g, Polygon)]
+    for p in polys:
+        p = orient(p.buffer(0), sign=-1.0)  # TrueType: vanjski konturi u smjeru kazaljke
+        if p.is_empty:
+            continue
+        for ring_ in [p.exterior] + list(p.interiors):
+            pts = [(round(x), round(y)) for x, y in list(ring_.coords)[:-1]]
+            clean = []
+            for pt in pts:
+                if not clean or clean[-1] != pt:
+                    clean.append(pt)
+            if len(clean) < 3:
+                continue
+            pen.moveTo(clean[0])
+            for pt in clean[1:]:
+                pen.lineTo(pt)
+            pen.closePath()
+    return pen.glyph()
+
+
+def build(out_dir, family, logo_e):
+    m = build_map(logo_e)
+    order = ['.notdef']
+    glyphs, metrics, cmap = {}, {}, {}
+    pen = TTGlyphPen(None)
+    pen.moveTo((60, 0)); pen.lineTo((60, CAP)); pen.lineTo((500, CAP)); pen.lineTo((500, 0)); pen.closePath()
+    glyphs['.notdef'] = pen.glyph(); metrics['.notdef'] = (600, 60)
+    for ch, fn in m.items():
+        geom, W = fn()
+        if ch != ' ':
+            geom = affinity.translate(geom.buffer(0), SB, 0)
+            geom = affinity.skew(geom, xs=math.degrees(math.atan(SLANT)), origin=(0, 0))
+        name = 'space' if ch == ' ' else f'uni{ord(ch):04X}'
+        order.append(name)
+        glyphs[name] = to_glyph(geom)
+        adv = int(W + 2 * SB) if ch != ' ' else W
+        xmin = int(geom.bounds[0]) if not geom.is_empty else 0
+        metrics[name] = (adv, xmin)
+        cmap[ord(ch)] = name
+        low = ch.lower()
+        if low != ch and len(low) == 1:
+            cmap[ord(low)] = name  # mala slova = velika (display font)
+
+    fb = FontBuilder(UPM, isTTF=True)
+    fb.setupGlyphOrder(order)
+    fb.setupCharacterMap(cmap)
+    fb.setupGlyf(glyphs)
+    fb.setupHorizontalMetrics(metrics)
+    fb.setupHorizontalHeader(ascent=980, descent=-220)
+    fb.setupNameTable({'familyName': family, 'styleName': 'Regular',
+                       'uniqueFontIdentifier': f'{family.replace(" ", "")}-Regular-1.000',
+                       'fullName': f'{family} Regular', 'psName': f'{family.replace(" ", "")}-Regular',
+                       'version': 'Version 1.000', 'copyright': '(c) 2026 PROZONE (prozone.ba)',
+                       'licenseDescription': 'Vlasnistvo PROZONE. Slobodno za koristenje unutar PROZONE brenda.'})
+    fb.setupOS2(sTypoAscender=980, sTypoDescender=-220, sTypoLineGap=0, usWinAscent=1000, usWinDescent=240,
+                sCapHeight=CAP, sxHeight=CAP, fsType=0, achVendID='PRZN')
+    fb.setupPost(italicAngle=-round(math.degrees(math.atan(SLANT)), 1))
+    fb.setupDummyDSIG = None
+    stem = family.replace(' ', '')
+    ttf = Path(out_dir) / f'{stem}.ttf'
+    fb.save(str(ttf))
+    fb.font.flavor = 'woff2'
+    fb.font.save(str(Path(out_dir) / f'{stem}.woff2'))
+    return ttf
+
+
+if __name__ == '__main__':
+    out = Path(sys.argv[1] if len(sys.argv) > 1 else '.')
+    out.mkdir(parents=True, exist_ok=True)
+    for fam, logo in (('Prozone Display', False), ('Prozone Logo', True)):
+        print('->', build(out, fam, logo))
