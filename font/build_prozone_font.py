@@ -24,9 +24,9 @@ from shapely.ops import unary_union
 CAP = 700          # visina velikih slova
 S = 180            # debljina vertikalnih linija
 H = 152            # debljina horizontalnih linija
-RO = 120           # vanjsko zaobljenje
-RI = 40            # unutrasnje zaobljenje
-SLANT = 0.18       # nagib (tan ~10.2 stepeni)
+RO = 220           # vanjsko zaobljenje (izmjereno na O iz loga)
+RI = 110           # unutrasnje zaobljenje (izmjereno na O iz loga)
+SLANT = 0.175      # nagib izmjeren iz loga (tan ~9.9 stepeni)
 SB = 55            # razmak lijevo/desno od slova
 MID = CAP / 2
 UPM = 1000
@@ -34,7 +34,9 @@ UPM = 1000
 
 # ---------------------------------------------------------------- pomocne
 def rr(x0, y0, x1, y1, tl=0, tr=0, br=0, bl=0, n=10):
-    """Pravougaonik sa zaobljenim pojedinacnim uglovima."""
+    """Pravougaonik sa zaobljenim pojedinacnim uglovima (radijusi ograniceni velicinom)."""
+    lim = min(x1 - x0, y1 - y0) / 2 - 0.5
+    tl, tr, br, bl = (min(r, lim) for r in (tl, tr, br, bl))
     pts = []
 
     def arc(cx, cy, r, a0, a1):
@@ -68,7 +70,27 @@ def band(geom, y0=0, y1=CAP, x0=-2000, x1=4000):
     return geom.intersection(box(x0, y0, x1, y1))
 
 
-# ---------------------------------------------------------------- slova
+# ------------------------------------------------- slova prenesena iz loga
+# P R O Z N i E (logo) su konture iz originalnog PROZONE loga (crtao vlasnik),
+# vidi trace_logo.py -> logo_glyphs.json. Ivice se poravnavaju na 0 i CAP.
+import json
+from shapely.geometry import shape as _shape
+
+_LOGO = json.load(open(Path(__file__).with_name('logo_glyphs.json')))
+
+
+def _snap(geom):
+    """Poravnaj slovo tacno na baseline (0) i visinu velikih slova (CAP) - skaliranjem, bez stepenika."""
+    y0, y1 = geom.bounds[1], geom.bounds[3]
+    g = affinity.translate(geom, 0, -y0)
+    return affinity.scale(g, 1, CAP / (y1 - y0), origin=(0, 0)).buffer(0)
+
+
+def logo_glyph(k):
+    d = _LOGO[k]
+    return _snap(_shape(d['geom'])), d['width']
+
+
 G = {}  # ime -> (geometrija, sirina)
 
 
@@ -96,12 +118,12 @@ def g_B():
 
 
 def g_C():
-    W = 800
+    W = 860
     return allr(0, 0, W, CAP, RO).difference(rr(S, H, W + 1, CAP - H, tl=RI, bl=RI)), W
 
 
 def g_D():
-    W = 800
+    W = 860
     return rr(0, 0, W, CAP, tr=RO, br=RO).difference(rr(S, H, W - S, CAP - H, tr=RI, br=RI)), W
 
 
@@ -113,7 +135,7 @@ def g_E():
     return e_std(), 740
 
 
-def g_E_logo():
+def g_E_logo_geo():
     W = 776
     gap = (CAP - 3 * H) / 2
     return U(box(0, 0, W, H), box(W * 0.03, H + gap, W, 2 * H + gap), box(0, CAP - H, W, CAP)), W
@@ -125,7 +147,7 @@ def g_F():
 
 
 def g_G():
-    W = 800
+    W = 860
     c, _ = g_C()
     return U(c, rr(W - S, 0, W, MID, br=RO), box(W * 0.46, MID - H, W, MID)), W
 
@@ -162,30 +184,30 @@ def g_M():
     return band(U(box(0, 0, S, CAP), box(W - S, 0, W, CAP), v)).intersection(box(0, 0, W, CAP)), W
 
 
-def g_N():
+def g_N_geo():
     W = 860
     diag = Polygon([(0, CAP), (S * 1.65, CAP), (W, 0), (W - S * 1.65, 0)])
     return U(box(0, 0, S, CAP), box(W - S, 0, W, CAP), diag), W
 
 
-def g_O():
+def g_O_geo():
     W = 860
     return ring(W), W
 
 
-def g_P():
+def g_P_geo():
     W = 680
     bowl = rr(0, 270, W, CAP, tr=RO, br=RO).difference(rr(S, 270 + H, W - S, CAP - H, tr=RI, br=RI))
     return U(box(0, 0, S, CAP), bowl), W
 
 
 def g_Q():
-    W = 860
+    W = 887
     tail = Polygon([(W * 0.50, H + 60), (W * 0.50 + S * 1.1, H + 60), (W + 40, -90), (W + 40 - S * 1.1, -90)])
     return U(ring(W), tail), W + 40
 
 
-def g_R():
+def g_R_geo():
     W = 700
     p, _ = g_P()
     leg = Polygon([(W * 0.40, 300), (W * 0.40 + S * 1.15, 300), (W + 60, 0), (W + 60 - S * 1.15, 0)])
@@ -206,7 +228,7 @@ def g_T():
 
 
 def g_U():
-    W = 800
+    W = 860
     return rr(0, 0, W, CAP, bl=RO, br=RO).difference(rr(S, H, W - S, CAP + 1, bl=RI, br=RI)), W
 
 
@@ -238,10 +260,34 @@ def g_Y():
     return band(U(v, box(W / 2 - S / 2, 0, W / 2 + S / 2, y0 + 40))).intersection(box(0, 0, W, CAP)), W
 
 
-def g_Z():
+def g_Z_geo():
     W = 840
     diag = Polygon([(W - S * 1.5, CAP - H), (W, CAP - H), (S * 1.5, H), (0, H)])
     return U(box(0, CAP - H, W, CAP), box(0, 0, W, H), diag), W
+
+
+def g_P():
+    return logo_glyph('P')
+
+
+def g_R():
+    return logo_glyph('R')
+
+
+def g_O():
+    return logo_glyph('O')
+
+
+def g_Z():
+    return logo_glyph('Z')
+
+
+def g_N():
+    return logo_glyph('N')
+
+
+def g_E_logo():
+    return logo_glyph('E')
 
 
 # ------------------------------------------------------------ dijakritici
