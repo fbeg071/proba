@@ -133,7 +133,7 @@ def g_D():
 
 
 def e_std(W=740):
-    return U(box(0, 0, S, CAP), box(0, 0, W, H), box(0, MID - H / 2, W * 0.88, MID + H / 2), box(0, CAP - H, W, CAP))
+    return U(box(0, 0, S, CAP), box(0, 0, W, H), box(0, MID - H / 2, W * 0.95, MID + H / 2), box(0, CAP - H, W, CAP))
 
 
 def g_E():
@@ -148,7 +148,7 @@ def g_E_logo_geo():
 
 def g_F():
     W = 700
-    return U(box(0, 0, S, CAP), box(0, MID - H / 2, W * 0.86, MID + H / 2), box(0, CAP - H, W, CAP)), W
+    return U(box(0, 0, S, CAP), box(0, MID - H / 2, W * 0.95, MID + H / 2), box(0, CAP - H, W, CAP)), W
 
 
 def g_G():
