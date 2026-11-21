@@ -407,7 +407,8 @@ def n_4():
 
 def n_5():
     W = DW
-    low = rr(0, 0, W, MID + H / 2, tr=RO, br=RO, bl=RO).difference(rr(-1, H, W - S, MID - H / 2, tr=RI, br=RI))
+    # donji lijevi kraj ravno odsjecen kao kod S
+    low = rr(0, 0, W, MID + H / 2, tr=RO, br=RO).difference(rr(-1, H, W - S, MID - H / 2, tr=RI, br=RI))
     return U(low, box(0, MID - H / 2, S, CAP), box(0, CAP - H, W, CAP)), W
 
 
