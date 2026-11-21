@@ -283,7 +283,7 @@ def g_Z_geo():
 
 def _bowl(W=780):
     """Luk P/R iz loga: otvoren s lijeve strane (stablo ide samo do donje precke luka)."""
-    b0, b1 = 226, 377          # donja precka luka
+    b0, b1 = 274, 426          # donja precka luka - podignuta u ravan srednje grede F/E (u logu 226..377)
     t0 = 549                   # gornja precka luka (549..700)
     outer = rr(0, b0, W, CAP, tr=235, br=205)
     counter = rr(-1, b1, W - S, t0, tr=48, br=52)
@@ -292,13 +292,13 @@ def _bowl(W=780):
 
 def g_P():
     W = 780
-    return U(_bowl(W), box(0, 0, 182, 230)), W
+    return U(_bowl(W), box(0, 0, 182, 280)), W
 
 
 def g_R():
     W = 780
-    leg = Polygon([(417, 280), (610, 280), (776, 0), (600, 0)])   # noga ulazi u donju precku luka (bez zareza)
-    return U(_bowl(W), box(0, 0, 182, 230), leg), W
+    leg = Polygon([(384, 330), (580, 330), (776, 0), (600, 0)])   # noga ulazi u donju precku luka (bez zareza)
+    return U(_bowl(W), box(0, 0, 182, 280), leg), W
 
 
 def g_O():
