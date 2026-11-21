@@ -281,22 +281,26 @@ def g_Z_geo():
 # Slova iz PROZONE loga, rekonstruisana prema izmjerenim tackama (trace_logo.py),
 # s pravim linijama i kruznim lukovima. Uspravne mjere (bez nagiba), jedinice fonta.
 
-def _bowl(W=780):
-    """Luk P/R iz loga: otvoren s lijeve strane (stablo ide samo do donje precke luka)."""
-    b0, b1 = 274, 426          # donja precka luka - podignuta u ravan srednje grede F/E (u logu 226..377)
+def _bowl(W=780, logo=False):
+    """Luk P/R: otvoren s lijeve strane (stablo ide samo do donje precke luka).
+    logo=True: donja precka kao u logu (226..377); inace u ravni srednje grede F/E (274..426)."""
+    b0, b1 = (226, 377) if logo else (274, 426)
     t0 = 549                   # gornja precka luka (549..700)
     outer = rr(0, b0, W, CAP, tr=235, br=205)
     counter = rr(-1, b1, W - S, t0, tr=48, br=52)
     return outer.difference(counter)
 
 
-def g_P():
+def g_P(logo=False):
     W = 780
-    return U(_bowl(W), box(0, 0, 182, 280)), W
+    return U(_bowl(W, logo), box(0, 0, 182, 230 if logo else 280)), W
 
 
-def g_R():
+def g_R(logo=False):
     W = 780
+    if logo:   # kao u logu
+        leg = Polygon([(417, 280), (610, 280), (776, 0), (600, 0)])
+        return U(_bowl(W, True), box(0, 0, 182, 230), leg), W
     leg = Polygon([(384, 330), (580, 330), (776, 0), (600, 0)])   # noga ulazi u donju precku luka (bez zareza)
     return U(_bowl(W), box(0, 0, 182, 280), leg), W
 
@@ -532,6 +536,9 @@ def build_map(logo_e):
     m = {}
     caps = {c: globals()['g_' + c] for c in 'ABCDFGHIJKLMNOPQRSTUVWXYZ'}
     caps['E'] = g_E_logo if logo_e else g_E
+    if logo_e:   # Prozone Logo: P i R tacno kao u logu
+        caps['P'] = lambda: g_P(True)
+        caps['R'] = lambda: g_R(True)
     for c, fn in caps.items():
         m[c] = fn
     m['Č'] = lambda: with_mark(g_C, caron)
