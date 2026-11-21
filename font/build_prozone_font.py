@@ -289,7 +289,13 @@ def g_Z():
 
 
 def g_N():
-    return logo_glyph('N')
+    # N iz loga, kosa linija stanjena na debljinu kose linije Z (okomito ~157, bilo ~171).
+    # Horizontalno se oduzima 2 x 8.5 jedinica; stabla (180) ostaju kao u logu.
+    n, W = logo_glyph('N')
+    d = 8.5
+    thin = affinity.translate(n, -d, 0).intersection(affinity.translate(n, d, 0))
+    stems = U(box(0, 0, S + 2, CAP), box(W - S - 2, 0, W, CAP)).intersection(n)
+    return U(thin, stems).buffer(0), W
 
 
 def g_E_logo():
