@@ -134,12 +134,12 @@ def g_D():
     return rr(0, 0, W, CAP, tr=222, br=222).difference(rr(181, 152, 707, 550, tr=109, br=109)), W
 
 
-def e_std(W=740):
+def e_std(W=772):          # sirina kao E u logu
     return U(box(0, 0, S, CAP), box(0, 0, W, H), box(0, MID - H / 2, W * 0.95, MID + H / 2), box(0, CAP - H, W, CAP))
 
 
 def g_E():
-    return e_std(), 740
+    return e_std(), 772
 
 
 def g_E_logo_geo():
@@ -149,7 +149,7 @@ def g_E_logo_geo():
 
 
 def g_F():
-    W = 700
+    W = 730
     return U(box(0, 0, S, CAP), box(0, MID - H / 2, W * 0.95, MID + H / 2), box(0, CAP - H, W, CAP)), W
 
 
@@ -201,7 +201,7 @@ def g_K():
 
 
 def g_L():
-    return U(box(0, 0, S, CAP), box(0, 0, 660, H)), 660
+    return U(box(0, 0, S, CAP), box(0, 0, 690, H)), 690
 
 
 def g_M():
