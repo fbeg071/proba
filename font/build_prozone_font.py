@@ -254,6 +254,7 @@ def g_S():
     # gornji dio: lijevi luk (zarotiran luk P), kraj gore desno odsjecen
     up = rr(0, m0, W, CAP, tl=B, bl=A).difference(rr(S, m1, W + 1, CAP - H, tl=52, bl=48))
     up = up.difference(box(S, m0 - 1, W + 1, m1))            # srednju gredu desno daje donji dio
+    up = up.difference(box(W * 0.90, CAP - H - 1, W + 1, CAP + 1))   # gornja greda skracena na 90%
     return U(lo, up), W
 
 
@@ -409,7 +410,7 @@ def n_5():
     W = DW
     # donji lijevi kraj ravno odsjecen kao kod S
     low = rr(0, 0, W, MID + H / 2, tr=RO, br=RO).difference(rr(-1, H, W - S, MID - H / 2, tr=RI, br=RI))
-    return U(low, box(0, MID - H / 2, S, CAP), box(0, CAP - H, W, CAP)), W
+    return U(low, box(0, MID - H / 2, S, CAP), box(0, CAP - H, W * 0.90, CAP)), W   # gornja greda 90%
 
 
 def n_6():
