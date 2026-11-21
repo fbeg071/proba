@@ -178,20 +178,26 @@ def g_J():
 
 
 def g_K():
-    # Varijanta 1 (odabrao vlasnik): gornji krak deblji (190) i produzen do kraja u stablo
-    # (bez stepenika ispod spoja); donji krak izlazi sa sredisnje linije gornjeg.
+    # Varijanta 1 (odabrao vlasnik): gornji krak produzen do kraja u stablo (bez stepenika),
+    # donji krak izlazi sa sredisnje linije gornjeg. Oba kraka okomite debljine PERP (~155),
+    # kao ostale kose linije (A, V, X, Y ~154; M, N, Z ~160).
     W = 780
-    UP = 190                                       # debljina gornjeg kraka (horizontalno)
-    x1 = W - UP / 2
-    x0, y0 = S - UP / 2, 160                       # kraj gornjeg kraka poravnat s desnom ivicom stabla
+    PERP = 155
+    y0 = 160
+    UP = 190
+    for _ in range(8):                             # horizontalna debljina gornjeg kraka za okomitu PERP
+        x0, x1 = S - UP / 2, W - UP / 2
+        UP = PERP * math.hypot(x1 - x0, CAP - y0) / (CAP - y0)
+    x0, x1 = S - UP / 2, W - UP / 2
     up = stroke((x0, y0), (x1, CAP), UP)
     up = up.intersection(box(0, 0, W, CAP)).difference(box(-10, -10, 0, CAP + 10))
     t = 0.42                                       # donji krak polazi sa sredisnje linije gornjeg
     xs, ys = x0 + t * (x1 - x0), y0 + t * (CAP - y0)
-    dn = stroke((xs, ys), (W - DIAG / 2, 0), DIAG)
-    k = U(box(0, 0, S, CAP), up, dn).intersection(box(0, 0, W, CAP))
-    # dio gornjeg kraka lijevo od stabla ne smije viriti ispod spoja
-    return k, W
+    DN = DIAG
+    for _ in range(8):
+        DN = PERP * math.hypot((W - DN / 2) - xs, ys) / ys
+    dn = stroke((xs, ys), (W - DN / 2, 0), DN)
+    return U(box(0, 0, S, CAP), up, dn).intersection(box(0, 0, W, CAP)), W
 
 
 def g_L():
@@ -264,8 +270,9 @@ def g_T():
 
 
 def g_U():
-    W = 860
-    return rr(0, 0, W, CAP, bl=RO, br=RO).difference(rr(S, H, W - S, CAP + 1, bl=RI, br=RI)), W
+    # sirina i zaobljenja kao O iz loga (887; 222 / 109)
+    W = 887
+    return rr(0, 0, W, CAP, bl=222, br=222).difference(rr(181, 152, 707, CAP + 1, bl=109, br=109)), W
 
 
 def g_V():
@@ -615,6 +622,48 @@ def to_glyph(geom):
     return pen.glyph()
 
 
+# --------------------------------------------------------------- kerning
+# Korekcije razmaka za parove kosih slova (jedinice fonta, negativno = blize).
+KERN_CLASSES = {
+    'A': 'A', 'V': 'V', 'W': 'W', 'Y': 'Y', 'T': 'T', 'L': 'L', 'P': 'P', 'F': 'F', 'K': 'K', 'R': 'R', 'X': 'X',
+    'round': 'OCĆČGQD0',     # okrugli oblici
+    'punct': '.,',
+}
+KERN_PAIRS = [
+    ('A', 'V', -95), ('A', 'W', -70), ('A', 'Y', -100), ('A', 'T', -75),
+    ('V', 'A', -95), ('W', 'A', -70), ('Y', 'A', -100), ('T', 'A', -75),
+    ('L', 'T', -110), ('L', 'V', -110), ('L', 'W', -80), ('L', 'Y', -120),
+    ('P', 'A', -70), ('F', 'A', -55), ('K', 'A', -25), ('X', 'A', -25), ('A', 'X', -25),
+    ('A', 'round', -20), ('round', 'A', -20), ('L', 'round', -30),
+    ('T', 'round', -25), ('round', 'T', -25), ('V', 'round', -30), ('round', 'V', -30),
+    ('Y', 'round', -40), ('round', 'Y', -40), ('W', 'round', -20), ('round', 'W', -20),
+    ('K', 'round', -40), ('X', 'round', -30), ('round', 'X', -30), ('R', 'V', -30), ('R', 'Y', -40),
+    ('T', 'punct', -110), ('V', 'punct', -110), ('W', 'punct', -80), ('Y', 'punct', -120),
+    ('P', 'punct', -120), ('F', 'punct', -90),
+]
+
+
+def add_kerning(font, cmap):
+    from fontTools.feaLib.builder import addOpenTypeFeaturesFromString
+    def names(chars):
+        out = []
+        for c in chars:
+            n = cmap.get(ord(c))
+            if n and n not in out:
+                out.append(n)
+        return out
+    lines = []
+    for k, chars in KERN_CLASSES.items():
+        ns = names(chars)
+        if ns:
+            lines.append(f"@k_{k} = [{' '.join(ns)}];")
+    lines.append('feature kern {')
+    for a, b, v in KERN_PAIRS:
+        lines.append(f'    pos @k_{a} @k_{b} {v};')
+    lines.append('} kern;')
+    addOpenTypeFeaturesFromString(font, '\n'.join(lines))
+
+
 def build(out_dir, family, logo_e):
     m = build_map(logo_e)
     order = ['.notdef']
@@ -652,6 +701,7 @@ def build(out_dir, family, logo_e):
     fb.setupOS2(sTypoAscender=980, sTypoDescender=-220, sTypoLineGap=0, usWinAscent=1000, usWinDescent=240,
                 sCapHeight=CAP, sxHeight=CAP, fsType=0, achVendID='PRZN')
     fb.setupPost(italicAngle=-round(math.degrees(math.atan(SLANT)), 1))
+    add_kerning(fb.font, cmap)
     fb.setupDummyDSIG = None
     stem = family.replace(' ', '')
     ttf = Path(out_dir) / f'{stem}.ttf'
