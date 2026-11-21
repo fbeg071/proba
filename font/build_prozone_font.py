@@ -447,8 +447,8 @@ def n_5():
     return U(low, box(0, _DM0, S, CAP), box(0, CAP - H, W * 0.90, CAP)), W   # gornja greda 90% kao S
 
 
-def n_6(sharp_bar=False):
-    # sharp_bar=True (za 9): greda zatvara rupu pod pravim uglom, bez unutrasnjeg luka
+def n_6(sharp_bar=True):
+    # sharp_bar=True (6 i 9): greda zatvara rupu pod pravim uglom, bez unutrasnjeg luka
     W = DW
     ct = 0 if sharp_bar else 52
     cr = 0 if sharp_bar else 48
