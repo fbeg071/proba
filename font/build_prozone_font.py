@@ -424,7 +424,11 @@ def n_1():
 def n_2():
     W = DW
     top = _bowl_r(W, _DM0, CAP)                         # gornji luk, kraj gore lijevo odsjecen
-    return U(top, box(0, 0, S, _DM1), box(0, 0, W, H)), W
+    top = top.difference(box(-1, _DM0 - 1, S, _DM1 + 1))   # lijevi kraj srednje grede daje donji dio
+    # donji dio: srednja greda se lukom spusta niz lijevu stranu na donju horizontalnu gredu
+    low = rr(0, 0, W, _DM1, tl=_DA).difference(rr(S, H, W + 1, _DM0, tl=48))
+    low = low.difference(box(S, _DM0, W + 1, _DM1 + 1))    # desni dio srednje grede daje gornji luk
+    return U(top, low), W
 
 
 def n_3():
@@ -443,9 +447,12 @@ def n_5():
     return U(low, box(0, _DM0, S, CAP), box(0, CAP - H, W * 0.90, CAP)), W   # gornja greda 90% kao S
 
 
-def n_6():
+def n_6(sharp_bar=False):
+    # sharp_bar=True (za 9): greda zatvara rupu pod pravim uglom, bez unutrasnjeg luka
     W = DW
-    low = rr(0, 0, W, _DM1, tr=_DA, br=_DB, bl=_DA).difference(rr(S, H, W - S, _DM0, tl=52, tr=48, br=52, bl=48))
+    ct = 0 if sharp_bar else 52
+    cr = 0 if sharp_bar else 48
+    low = rr(0, 0, W, _DM1, tr=_DA, br=_DB, bl=_DA).difference(rr(S, H, W - S, _DM0, tl=ct, tr=cr, br=52, bl=48))
     up = rr(0, _DM0, W, CAP, tl=_DB).difference(rr(S, _DM1, W + 1, CAP - H, tl=52))
     up = up.difference(box(W * 0.90, CAP - H - 1, W + 1, CAP + 1))             # gornja greda 90% kao S
     up = up.difference(box(S, _DM0 - 1, W + 1, _DM1))                           # srednju gredu daje donji luk
@@ -474,7 +481,7 @@ def n_8():
 
 
 def n_9():
-    g, W = n_6()
+    g, W = n_6(sharp_bar=True)
     return affinity.scale(g, -1, -1, origin=(W / 2, CAP / 2)), W
 
 
