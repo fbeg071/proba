@@ -111,12 +111,12 @@ def g_A():
 
 
 def g_B():
-    W = 720
-    o = rr(0, 0, W, CAP, tr=RO, br=RO)
-    c1 = rr(S, H, W - S, MID - H / 2, tr=RI, br=RI)
-    c2 = rr(S, MID + H / 2, W - S, CAP - H, tr=RI, br=RI)
-    notch = box(W - 60, MID - H / 2 + 40, W + 1, MID + H / 2 - 40)
-    return o.difference(c1).difference(c2), W
+    # B u stilu P iz loga: isti lukovi i zaobljenja, puno stablo, donji luk malo siri.
+    W = 800
+    m0, m1 = MID - 76, MID + 76            # srednja precka
+    up = rr(0, m0, W - 30, CAP, tr=200, br=130).difference(rr(181, m1, W - 30 - S, CAP - 151, tr=48, br=48))
+    lo = rr(0, 0, W, m1, tr=130, br=205).difference(rr(181, 151, W - S, m0, tr=48, br=52))
+    return U(up, lo, box(0, 0, 181, CAP)), W
 
 
 def g_C():
@@ -272,34 +272,51 @@ def g_Z_geo():
     return U(box(0, CAP - H, W, CAP), box(0, 0, W, H), diag), W
 
 
+# Slova iz PROZONE loga, rekonstruisana prema izmjerenim tackama (trace_logo.py),
+# s pravim linijama i kruznim lukovima. Uspravne mjere (bez nagiba), jedinice fonta.
+
+def _bowl(W=780):
+    """Luk P/R iz loga: otvoren s lijeve strane (stablo ide samo do donje precke luka)."""
+    b0, b1 = 226, 377          # donja precka luka
+    t0 = 549                   # gornja precka luka (549..700)
+    outer = rr(0, b0, W, CAP, tr=235, br=205)
+    counter = rr(-1, b1, W - S, t0, tr=48, br=52)
+    return outer.difference(counter)
+
+
 def g_P():
-    return logo_glyph('P')
+    W = 780
+    return U(_bowl(W), box(0, 0, 182, 230)), W
 
 
 def g_R():
-    return logo_glyph('R')
+    W = 780
+    leg = Polygon([(417, 280), (610, 280), (776, 0), (600, 0)])   # noga ulazi u donju precku luka (bez zareza)
+    return U(_bowl(W), box(0, 0, 182, 230), leg), W
 
 
 def g_O():
-    return logo_glyph('O')
+    W = 887
+    return allr(0, 0, W, CAP, 222).difference(allr(181, 152, 707, 550, 109)), W
 
 
 def g_Z():
-    return logo_glyph('Z')
+    W = 849
+    diag = Polygon([(0, 152), (292, 152), (W, 549), (576, 549)])
+    return U(box(0, 0, W, 152), box(0, 549, W, CAP), diag), W
 
 
 def g_N():
-    # N iz loga, kosa linija stanjena na debljinu kose linije Z (okomito ~157, bilo ~171).
-    # Horizontalno se oduzima 2 x 8.5 jedinica; stabla (180) ostaju kao u logu.
-    n, W = logo_glyph('N')
-    d = 8.5
-    thin = affinity.translate(n, -d, 0).intersection(affinity.translate(n, d, 0))
-    stems = U(box(0, 0, S + 2, CAP), box(W - S - 2, 0, W, CAP)).intersection(n)
-    return U(thin, stems).buffer(0), W
+    # kosa linija stanjena na debljinu kose linije Z (okomito ~160; u logu ~170)
+    W = 878
+    d = 6.5
+    diag = Polygon([(65 + d, CAP), (279 - d, CAP), (813 - d, 0), (592 + d, 0)])
+    return U(box(0, 0, 181, CAP), box(W - 181, 0, W, CAP), diag).intersection(box(0, 0, W, CAP)), W
 
 
 def g_E_logo():
-    return logo_glyph('E')
+    W = 772
+    return U(box(0, 0, W, 151), box(0, 277, W - 21, 427), box(0, 549, W - 2, CAP)), W
 
 
 # ------------------------------------------------------------ dijakritici
