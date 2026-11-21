@@ -106,7 +106,7 @@ def g_A():
     left = stroke((DIAG / 2, 0), (xl, CAP), DIAG)
     right = stroke((W - DIAG / 2, 0), (W - xl, CAP), DIAG)
     hull = Polygon([(0, 0), (W / 2 - top / 2, CAP), (W / 2 + top / 2, CAP), (W, 0)])
-    bar = box(0, 210, W, 210 + H * 0.9).intersection(hull)
+    bar = box(0, 210, W, 210 + H).intersection(hull)
     return band(U(left, right, bar, box(W / 2 - top / 2 + 20, CAP - H, W / 2 + top / 2 - 20, CAP))), W
 
 
@@ -148,14 +148,14 @@ def g_E_logo_geo():
 
 def g_F():
     W = 700
-    return U(box(0, 0, S, CAP), box(0, MID - H / 2 - 20, W * 0.86, MID + H / 2 - 20), box(0, CAP - H, W, CAP)), W
+    return U(box(0, 0, S, CAP), box(0, MID - H / 2, W * 0.86, MID + H / 2), box(0, CAP - H, W, CAP)), W
 
 
 def g_G():
     # gornji kraj odsjecen ravno kao kod C; donji desni ugao ostaje zaobljen
     W = 860
     g = rr(0, 0, W, CAP, tl=RO, bl=RO, br=RO).difference(rr(S, H, W - S, CAP - H, tl=RI, bl=RI, br=RI))
-    b0, b1 = 300, 300 + H * 0.9            # precka G; donja rupa ostaje visine ~150
+    b0, b1 = 290, 290 + H                  # precka G (152); donja rupa ~138
     g = g.difference(box(W - S - 1, b1, W + 1, CAP - H))
     return U(g, box(W * 0.48, b0, W - S + 1, b1)), W
 
@@ -450,7 +450,7 @@ def p_plus():
 
 def p_equal():
     W = 560
-    return U(box(0, 170, W, 170 + H * 0.85), box(0, 380, W, 380 + H * 0.85)), W
+    return U(box(0, 130, W, 130 + H), box(0, 400, W, 400 + H)), W
 
 
 def p_slash():
