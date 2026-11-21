@@ -518,19 +518,21 @@ def p_exclam():
 
 
 def p_question():
+    # gornji dio kao luk broja 2 (luk P), kuka odsjecena; stablo + tacka
     W = 600
-    top = rr(0, MID - H / 2, W, CAP, tr=RO, br=RI).difference(rr(-1, MID + H / 2, W - S, CAP - H, tr=RI))
-    top = top.difference(box(-1, MID - H / 2 - 1, W * 0.30, MID + H / 2 + 1))
-    return U(top, box(W * 0.30, 230, W * 0.30 + S, MID + H / 2), box(W * 0.30, 0, W * 0.30 + S, H + 10)), W
+    top = _bowl_r(W, _DM0, CAP)
+    xs = W * 0.30
+    top = top.difference(box(-1, _DM0 - 1, xs, _DM1 + 1))
+    return U(top, box(xs, 250, xs + S, _DM1), box(xs, 0, xs + S, H + 10)), W
 
 
 def p_hyphen():
-    return box(0, 260, 380, 260 + H), 380
+    return box(0, _DM0, 380, _DM1), 380            # u visini srednje grede slova (274..426)
 
 
 def p_plus():
-    W = 560
-    return U(box(0, 260, W, 260 + H), box(W / 2 - H / 2, 60, W / 2 + H / 2, 600)), W
+    W = 600
+    return U(box(0, _DM0, W, _DM1), box(W / 2 - S / 2, MID - W / 2, W / 2 + S / 2, MID + W / 2)), W
 
 
 def p_equal():
@@ -571,23 +573,24 @@ def p_parenright():
 
 
 def p_euro():
-    W = 820
-    c, _ = g_C()
-    c = affinity.translate(c, 40, 0)
-    return U(c, box(0, MID + 30, W * 0.62, MID + 30 + H * 0.7), box(0, MID - 30 - H * 0.7, W * 0.62, MID - 30)), W + 40
+    # C iz loga + dvije precke
+    c, Wc = g_C()
+    c = affinity.translate(c, 60, 0)
+    bars = U(box(0, 390, Wc * 0.62, 390 + 115), box(0, 195, Wc * 0.62, 195 + 115))
+    return U(c, bars), Wc + 60
 
 
 def p_numbersign():
     W = 760
-    bars = U(box(0, 210, W, 210 + H * 0.8), box(0, 440, W, 440 + H * 0.8))
-    st = U(band(stroke((W * 0.30, 0), (W * 0.38, CAP), S * 0.9)), band(stroke((W * 0.62, 0), (W * 0.70, CAP), S * 0.9)))
-    return U(bars, st).intersection(box(0, 0, W, CAP)), W
+    bars = U(box(0, 190, W, 190 + 125), box(0, 420, W, 420 + 125))
+    st = U(box(W * 0.24, 0, W * 0.24 + 160, CAP), box(W * 0.58, 0, W * 0.58 + 160, CAP))
+    return U(bars, st), W
 
 
 def p_asterisk():
-    W = 520
-    c = (W / 2, 520)
-    arms = [affinity.rotate(box(c[0] - 55, c[1], c[0] + 55, c[1] + 200), a, origin=c) for a in (0, 60, 120, 180, 240, 300)]
+    W = 560
+    c = (W / 2, 470)
+    arms = [affinity.rotate(box(c[0] - 70, c[1], c[0] + 70, c[1] + 230), a, origin=c) for a in (0, 60, 120, 180, 240, 300)]
     return U(*arms), W
 
 
@@ -605,11 +608,12 @@ def p_ampersand():
 
 
 def p_at():
-    W = 880
-    o = allr(0, -60, W, CAP + 60, RO + 40).difference(allr(H, -60 + H, W - H, CAP + 60 - H, RI))
-    o = o.difference(box(W * 0.55, -61, W * 0.80, -60 + H + 1))
-    inner = allr(250, 160, W - H - 40, 540, 60).difference(allr(250 + S, 160 + H * 0.8, W - H - 40 - S, 540 - H * 0.8, 20))
-    return U(o, inner), W
+    # @: vanjski prsten (kao O), unutra malo "o" cija desna strana silazi i spaja se s prstenom
+    W = 920
+    o = allr(0, -80, W, CAP + 80, 240).difference(allr(130, 50, W - 130, CAP - 50, 110))
+    inner = allr(270, 170, 680, 530, 90).difference(allr(390, 290, 560, 410, 30))
+    stem = box(560, 50, 680, 350)
+    return U(o, inner, stem), W
 
 
 # ------------------------------------------------------------------- mapa
