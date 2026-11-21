@@ -128,8 +128,9 @@ def g_C():
 
 
 def g_D():
-    W = 860
-    return rr(0, 0, W, CAP, tr=RO, br=RO).difference(rr(S, H, W - S, CAP - H, tr=RI, br=RI)), W
+    # desni luk identican slovu O iz loga (sirina 887, zaobljenja 222 / 109, rupa 181..707 x 152..550)
+    W = 887
+    return rr(0, 0, W, CAP, tr=222, br=222).difference(rr(181, 152, 707, 550, tr=109, br=109)), W
 
 
 def e_std(W=740):
@@ -152,12 +153,12 @@ def g_F():
 
 
 def g_G():
-    # gornji kraj odsjecen ravno kao kod C; donji desni ugao ostaje zaobljen
-    W = 860
-    g = rr(0, 0, W, CAP, tl=RO, bl=RO, br=RO).difference(rr(S, H, W - S, CAP - H, tl=RI, bl=RI, br=RI))
-    b0, b1 = 290, 290 + H                  # precka G (152); donja rupa ~138
-    g = g.difference(box(W - S - 1, b1, W + 1, CAP - H))
-    return U(g, box(W * 0.48, b0, W - S + 1, b1)), W
+    # oblik i desni luk kao O iz loga; gornji kraj odsjecen ravno kao kod C
+    W = 887
+    g = rr(0, 0, W, CAP, tl=222, bl=222, br=222).difference(rr(181, 152, 707, 550, tl=109, bl=109, br=109))
+    b0, b1 = 290, 290 + H                  # precka G (152)
+    g = g.difference(box(706, b1, W + 1, 550))
+    return U(g, box(W * 0.48, b0, 708, b1)), W
 
 
 def g_H():
