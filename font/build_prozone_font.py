@@ -100,13 +100,14 @@ def ring(W, h=CAP):
 
 
 def g_A():
-    W = 820
-    outer = Polygon([(0, 0), (W * 0.36, CAP), (W * 0.64, CAP), (W, 0)])
-    d = S * 1.05
-    inner = Polygon([(d, 0), (W * 0.36 + d * 0.45, CAP - H), (W * 0.64 - d * 0.45, CAP - H), (W - d, 0)])
-    bar = box(0, 170, W, 170 + H * 0.9)
-    shape = outer.difference(inner).union(bar.intersection(outer))
-    return shape, W
+    W = 880                                   # sirina kao N
+    top = 200                                 # ravan vrh
+    xl = W / 2 - top / 2 + DIAG / 2           # gornji kraj sredisnje linije lijevog kraka
+    left = stroke((DIAG / 2, 0), (xl, CAP), DIAG)
+    right = stroke((W - DIAG / 2, 0), (W - xl, CAP), DIAG)
+    hull = Polygon([(0, 0), (W / 2 - top / 2, CAP), (W / 2 + top / 2, CAP), (W, 0)])
+    bar = box(0, 210, W, 210 + H * 0.9).intersection(hull)
+    return band(U(left, right, bar, box(W / 2 - top / 2 + 20, CAP - H, W / 2 + top / 2 - 20, CAP))), W
 
 
 def g_B():
