@@ -294,11 +294,17 @@ def g_X():
 
 
 def g_Y():
+    # krakovi iste okomite debljine kao kod X i V (~154)
     W = 800
-    w = DIAG
     y0 = 300
+    perp = DIAG * CAP / math.hypot(CAP, 820 / 2 - DIAG / 2)   # okomita debljina V/X
+    w = DIAG
+    for _ in range(5):
+        w = perp * math.hypot(CAP - y0, W / 2 - w / 2) / (CAP - y0)
     v = U(stroke((w / 2, CAP), (W / 2, y0), w), stroke((W - w / 2, CAP), (W / 2, y0), w))
-    return band(U(v, box(W / 2 - S / 2, 0, W / 2 + S / 2, y0 + 40))).intersection(box(0, 0, W, CAP)), W
+    # blagi prelaz sa spoja krakova (sirina w) na stablo (S), bez stepenika
+    neck = Polygon([(W / 2 - S / 2, y0 - 70), (W / 2 + S / 2, y0 - 70), (W / 2 + w / 2, y0), (W / 2 - w / 2, y0)])
+    return band(U(v, neck, box(W / 2 - S / 2, 0, W / 2 + S / 2, y0 - 69))).intersection(box(0, 0, W, CAP)), W
 
 
 def g_Z_geo():
