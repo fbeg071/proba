@@ -242,11 +242,19 @@ def g_R_geo():
 
 
 def g_S():
-    W = 780
-    o = allr(0, 0, W, CAP, RO)
-    o = o.difference(rr(S, MID + H / 2, W + 1, CAP - H, tl=RI))
-    o = o.difference(rr(-1, H, W - S, MID - H / 2, br=RI))
-    return o, W
+    # Lukovi kao kod P iz loga (vanjski 235/205, unutrasnji 48/52, skalirano na pola visine),
+    # krajevi (gore desno, dolje lijevo) ravno odsjeceni kao kod C. Tackasto simetricno.
+    W = 800
+    m0, m1 = MID - 76, MID + 76                # srednja greda
+    k = m1 / (CAP - 226)
+    A, B = 235 * k, 205 * k                    # luk P: gornji / donji vanjski radijus
+    # donji dio: desni luk kao P, kraj dolje lijevo odsjecen
+    lo = rr(0, 0, W, m1, tr=A, br=B).difference(rr(-1, H, W - S, m0, tr=48, br=52))
+    lo = lo.difference(box(-1, m0 - 1, S, m1 + 1))          # lijevi kraj srednje grede daje gornji dio
+    # gornji dio: lijevi luk (zarotiran luk P), kraj gore desno odsjecen
+    up = rr(0, m0, W, CAP, tl=B, bl=A).difference(rr(S, m1, W + 1, CAP - H, tl=52, bl=48))
+    up = up.difference(box(S, m0 - 1, W + 1, m1))            # srednju gredu desno daje donji dio
+    return U(lo, up), W
 
 
 def g_T():
