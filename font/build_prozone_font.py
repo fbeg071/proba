@@ -112,12 +112,12 @@ def g_A():
 
 def g_B():
     # B u stilu P iz loga. Donji luk = luk slova P (sirina 780, zaobljenja 235/205 i 48/52),
-    # proporcionalno spusten na visinu donje polovine; gornji luk malo uzi.
+    # proporcionalno spusten na visinu polovine. Gornji luk: isti oblik luka kao P, 30 jedinica uzi.
     W = 780
     m0, m1 = MID - 76, MID + 76            # srednja precka
     k = m1 / (CAP - 226)                   # odnos visine donjeg luka i luka P
     lo = rr(0, 0, W, m1, tr=235 * k, br=205 * k).difference(rr(181, 151, W - S, m0, tr=48, br=52))
-    up = rr(0, m0, W - 30, CAP, tr=200, br=130).difference(rr(181, m1, W - 30 - S, CAP - 151, tr=48, br=48))
+    up = rr(0, m0, W - 30, CAP, tr=235 * k, br=205 * k).difference(rr(181, m1, W - 30 - S, CAP - 151, tr=48, br=52))
     return U(up, lo, box(0, 0, 181, CAP)), W
 
 
