@@ -626,6 +626,8 @@ def p_at():
 ARCHIVO_W = {'A': 919, 'B': 799, 'C': 852, 'D': 812, 'E': 739, 'F': 690, 'G': 901, 'H': 836, 'J': 648,
              'K': 858, 'L': 658, 'M': 998, 'N': 835, 'O': 926, 'P': 775, 'Q': 926, 'R': 828, 'S': 792,
              'T': 816, 'U': 822, 'V': 897, 'W': 1220, 'X': 919, 'Y': 902, 'Z': 792}
+# P, R, E, F: sirine kao u logu (P i R 780, E 772), F kao prvobitno uz logo E (730). Odabrao vlasnik 22.11.2026.
+ARCHIVO_W.update({'P': 780, 'R': 780, 'E': 772, 'F': 730})
 DIAG_LETTERS = set('AKMNVWXYZ')       # grade se u novoj sirini (debljine kosih linija ostaju)
 
 # brojevi i znakovi: sirine kao Archivo Expanded ExtraBold Italic (isto mjerenje). Odabrao vlasnik 22.11.2026.
