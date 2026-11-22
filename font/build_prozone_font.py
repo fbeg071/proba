@@ -76,6 +76,7 @@ def band(geom, y0=0, y1=CAP, x0=-2000, x1=4000):
 # P R O Z N i E (logo) su konture iz originalnog PROZONE loga (crtao vlasnik),
 # vidi trace_logo.py -> logo_glyphs.json. Ivice se poravnavaju na 0 i CAP.
 import json
+from fontTools.agl import UV2AGL
 from shapely.geometry import shape as _shape
 
 _LOGO = json.load(open(Path(__file__).with_name('logo_glyphs.json')))
@@ -801,7 +802,7 @@ def p_bracketright(W=255):
     return affinity.scale(g, -1, 1, origin=(W / 2, 0)), W
 
 
-def p_less(W=575, y0=-10, y1=569, perp=140):
+def p_less(W=580, y0=-10, y1=569, perp=140):
     ym = (y0 + y1) / 2
     t = perp * math.hypot(W, y1 - ym) / W                 # vertikalna debljina kraka
     a = Polygon([(0, ym + t / 2), (W, y1), (W, y1 - t), (0, ym - t / 2)])
@@ -809,7 +810,7 @@ def p_less(W=575, y0=-10, y1=569, perp=140):
     return U(a, b), W
 
 
-def p_greater(W=575):
+def p_greater(W=580):
     g, _ = p_less(W)
     return affinity.scale(g, -1, 1, origin=(W / 2, 0)), W
 
@@ -966,7 +967,7 @@ def build(out_dir, family, logo_e):
             geom = affinity.skew(geom, xs=math.degrees(math.atan(SLANT)), origin=(0, 0))
         geom = affinity.scale(geom, SCALE, SCALE, origin=(0, 0))
         adv = int(round(adv * SCALE))
-        name = 'space' if ch == ' ' else f'uni{ord(ch):04X}'
+        name = 'space' if ch == ' ' else (UV2AGL.get(ord(ch)) or f'uni{ord(ch):04X}')
         order.append(name)
         glyphs[name] = to_glyph(geom)
         xmin = int(geom.bounds[0]) if not geom.is_empty else 0
@@ -976,21 +977,31 @@ def build(out_dir, family, logo_e):
         if low != ch and len(low) == 1:
             cmap[ord(low)] = name  # mala slova = velika (display font)
 
+    cmap[0x00A0] = 'space'                         # neprelomni razmak
     fb = FontBuilder(UPM, isTTF=True)
     fb.setupGlyphOrder(order)
     fb.setupCharacterMap(cmap)
     fb.setupGlyf(glyphs)
     fb.setupHorizontalMetrics(metrics)
-    fb.setupHorizontalHeader(ascent=980, descent=-220)
+    fb.setupHorizontalHeader(ascent=980, descent=-220, caretSlopeRise=1000, caretSlopeRun=round(1000 * SLANT))
     fb.setupNameTable({'familyName': family, 'styleName': 'Regular',
                        'uniqueFontIdentifier': f'{family.replace(" ", "")}-Regular-1.000',
                        'fullName': f'{family} Regular', 'psName': f'{family.replace(" ", "")}-Regular',
                        'version': 'Version 1.000', 'copyright': '(c) 2026 PROZONE (prozone.ba)',
-                       'licenseDescription': 'Vlasnistvo PROZONE. Slobodno za koristenje unutar PROZONE brenda.'})
+                       'licenseDescription': 'Vlasnistvo PROZONE. Slobodno za koristenje unutar PROZONE brenda.'},
+                      mac=False)
     fb.setupOS2(sTypoAscender=980, sTypoDescender=-220, sTypoLineGap=0, usWinAscent=1000, usWinDescent=240,
-                sCapHeight=round(CAP * SCALE), sxHeight=round(CAP * SCALE), fsType=0, achVendID='PRZN')
+                sCapHeight=round(CAP * SCALE), sxHeight=round(CAP * SCALE), fsType=0, achVendID='PRZN',
+                ulCodePageRange1=(1 << 0) | (1 << 1))        # Latin 1 + Latin 2 (srednja Evropa)
     fb.setupPost(italicAngle=-round(math.degrees(math.atan(SLANT)), 1))
     add_kerning(fb.font, cmap)
+    from fontTools.ttLib import newTable
+    from fontTools.ttLib.tables import ttProgram
+    prep = newTable('prep'); prep.program = ttProgram.Program()
+    prep.program.fromAssembly(['PUSHW[]', '511', 'SCANCTRL[]', 'PUSHB[]', '4', 'SCANTYPE[]'])   # smart dropout
+    fb.font['prep'] = prep
+    gasp = newTable('gasp'); gasp.version = 1; gasp.gaspRange = {0xFFFF: 0x000F}
+    fb.font['gasp'] = gasp
     fb.setupDummyDSIG = None
     stem = family.replace(' ', '')
     ttf = Path(out_dir) / f'{stem}.ttf'
