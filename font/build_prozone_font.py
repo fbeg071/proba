@@ -28,6 +28,7 @@ RO = 220           # vanjsko zaobljenje (izmjereno na O iz loga)
 RI = 110           # unutrasnje zaobljenje (izmjereno na O iz loga)
 SLANT = 0.175      # nagib izmjeren iz loga (tan ~9.9 stepeni)
 SB = 55            # razmak lijevo/desno od slova
+SCALE = 0.98       # cijeli font smanjen 2% (visina velikih slova 686 kao Archivo). Odabrao vlasnik 22.11.2026.
 MID = CAP / 2
 DIAG = 170         # horizontalna debljina kosih linija (mjerilo: slovo A)
 UPM = 1000
@@ -843,7 +844,7 @@ def add_kerning(font, cmap):
             lines.append(f"@k_{k} = [{' '.join(ns)}];")
     lines.append('feature kern {')
     for a, b, v in KERN_PAIRS:
-        lines.append(f'    pos @k_{a} @k_{b} {v};')
+        lines.append(f'    pos @k_{a} @k_{b} {round(v * SCALE)};')
     lines.append('} kern;')
     addOpenTypeFeaturesFromString(font, '\n'.join(lines))
 
@@ -867,6 +868,8 @@ def build(out_dir, family, logo_e):
         elif ch != ' ':
             geom = affinity.translate(geom.buffer(0), SB, 0)
             geom = affinity.skew(geom, xs=math.degrees(math.atan(SLANT)), origin=(0, 0))
+        geom = affinity.scale(geom, SCALE, SCALE, origin=(0, 0))
+        adv = int(round(adv * SCALE))
         name = 'space' if ch == ' ' else f'uni{ord(ch):04X}'
         order.append(name)
         glyphs[name] = to_glyph(geom)
@@ -889,7 +892,7 @@ def build(out_dir, family, logo_e):
                        'version': 'Version 1.000', 'copyright': '(c) 2026 PROZONE (prozone.ba)',
                        'licenseDescription': 'Vlasnistvo PROZONE. Slobodno za koristenje unutar PROZONE brenda.'})
     fb.setupOS2(sTypoAscender=980, sTypoDescender=-220, sTypoLineGap=0, usWinAscent=1000, usWinDescent=240,
-                sCapHeight=CAP, sxHeight=CAP, fsType=0, achVendID='PRZN')
+                sCapHeight=round(CAP * SCALE), sxHeight=round(CAP * SCALE), fsType=0, achVendID='PRZN')
     fb.setupPost(italicAngle=-round(math.degrees(math.atan(SLANT)), 1))
     add_kerning(fb.font, cmap)
     fb.setupDummyDSIG = None
