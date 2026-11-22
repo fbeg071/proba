@@ -100,7 +100,8 @@ def ring(W, h=CAP):
     return allr(0, 0, W, h, RO).difference(allr(S, H, W - S, h - H, RI))
 
 
-A_PERP = 154                                  # okomita debljina krakova A
+A_PERP = 185                                  # okomita debljina krakova A (kao stabla). Odabrao vlasnik 22.11.2026.
+VXY_PERP = 185                                # okomita debljina kosih linija V, X, Y
 
 
 def g_A(W=880):
@@ -287,7 +288,7 @@ def g_U():
 def g_V(W=820):
     w = DIAG
     for _ in range(8):                             # okomita debljina ~154 i pri drugoj sirini
-        w = 154 * math.hypot(CAP, W / 2 - w / 2) / CAP
+        w = VXY_PERP * math.hypot(CAP, W / 2 - w / 2) / CAP
     v = U(stroke((w / 2, CAP), (W / 2, 0), w), stroke((W - w / 2, CAP), (W / 2, 0), w))
     return band(v).intersection(box(0, 0, W, CAP)), W
 
@@ -301,8 +302,7 @@ def g_W(W=1120):
 
 def g_X(W=820):
     # kose linije iste okomite debljine kao kod V (V: horizontalno DIAG, nagib (W_V/2 - DIAG/2) / CAP)
-    wv, Wv = DIAG, 820
-    perp = wv * CAP / math.hypot(CAP, Wv / 2 - wv / 2)          # okomita debljina linije V (~154)
+    perp = VXY_PERP
     w = DIAG
     for _ in range(5):                                           # horizontalna debljina za isti okomiti presjek
         w = perp * math.hypot(CAP, W - w) / CAP
@@ -312,14 +312,15 @@ def g_X(W=820):
 def g_Y(W=800):
     # krakovi iste okomite debljine kao kod X i V (~154)
     y0 = 300
-    perp = DIAG * CAP / math.hypot(CAP, 820 / 2 - DIAG / 2)   # okomita debljina V/X
+    perp = VXY_PERP
     w = DIAG
     for _ in range(5):
         w = perp * math.hypot(CAP - y0, W / 2 - w / 2) / (CAP - y0)
     v = U(stroke((w / 2, CAP), (W / 2, y0), w), stroke((W - w / 2, CAP), (W / 2, y0), w))
     # blagi prelaz sa spoja krakova (sirina w) na stablo (S), bez stepenika
-    neck = Polygon([(W / 2 - S / 2, y0 - 70), (W / 2 + S / 2, y0 - 70), (W / 2 + w / 2, y0), (W / 2 - w / 2, y0)])
-    return band(U(v, neck, box(W / 2 - S / 2, 0, W / 2 + S / 2, y0 - 69))).intersection(box(0, 0, W, CAP)), W
+    nk = max(1, (w - S) / 2 * (CAP - y0) / (W / 2 - w / 2))   # vanjske ivice krakova se produze ravno do stabla
+    neck = Polygon([(W / 2 - S / 2, y0 - nk), (W / 2 + S / 2, y0 - nk), (W / 2 + w / 2, y0), (W / 2 - w / 2, y0)])
+    return band(U(v, neck, box(W / 2 - S / 2, 0, W / 2 + S / 2, y0 - nk + 1))).intersection(box(0, 0, W, CAP)), W
 
 
 def g_Z_geo():
