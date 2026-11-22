@@ -742,12 +742,16 @@ def p_ampersand(W=954):
 
 
 def nw_at(W):
-    # @: prsten otvoren dolje desno, stablo unutrasnjeg "a" prelazi u donji dio prstena,
-    # desna greda prstena ide ravno do osnovne linije. Odabrao vlasnik 22.11.2026.
-    g, _ = stretch_to(p_at, W)()
-    g = affinity.translate(g, -g.bounds[0], 0)
-    st_r = W - (920 - 680)
-    return U(g.difference(box(st_r, -81, W + 1, 0)), box(W - 130, 0, W, 400)), W
+    # @: stoji na osnovnoj liniji, visine kao velika slova (0..CAP). Prsten otvoren dolje desno,
+    # stablo unutrasnjeg "a" prelazi u donji dio prstena, desna greda ide ravno do osnovne linije.
+    # Odabrao vlasnik 22.11.2026.
+    t = 130
+    ring = allr(0, 0, W, CAP, 220).difference(allr(t, t, W - t, CAP - t, 100))
+    st_r = W - 240
+    a = allr(270, 190, st_r, 510, 80).difference(allr(270 + 120, 190 + 115, st_r - 120, 510 - 115, 25))
+    stem = box(st_r - 120, t - 1, st_r, 350)
+    ring = ring.difference(box(st_r, -1, W - t, t + 101))         # prsten otvoren dolje desno
+    return U(ring, a, stem, box(W - t, 0, W, 400)), W
 
 
 def p_dollar(sfn, W=653):
