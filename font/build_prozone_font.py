@@ -123,10 +123,12 @@ def g_B():
 
 
 def g_C():
-    # krajevi C odsjeceni ravno (bez zaobljenog ugla na desnoj strani)
-    # mjere kao O iz loga (sirina 887, zaobljenja 222 / 109, rupa 181..707 x 152..550)
+    # C: svi lukovi kao O iz loga (zaobljenja 222 / 109), oba kraja se savijaju prema dolje/gore
+    # i odsjeceni su ravno; otvor iste visine i na istoj visini kao precka G (290..442). Odabrao vlasnik.
     W = 887
-    return rr(0, 0, W, CAP, tl=222, bl=222).difference(rr(181, 152, W + 1, 550, tl=109, bl=109)), W
+    o = rr(0, 0, W, CAP, tl=222, tr=222, bl=222, br=222)
+    return o.difference(rr(181, 152, W - 181, 550, tl=109, tr=109, bl=109, br=109)).difference(
+        box(W - 182, 290, W + 1, 290 + H)), W
 
 
 def g_D():
@@ -156,10 +158,12 @@ def g_F():
 
 def g_G():
     # oblik i desni luk kao O iz loga; gornji kraj odsjecen ravno kao kod C
+    # gornji desni luk se savija prema dolje kao kod O, kraj odsjecen ravno na 500. Odabrao vlasnik.
     W = 887
-    g = rr(0, 0, W, CAP, tl=222, bl=222, br=222).difference(rr(181, 152, 707, 550, tl=109, bl=109, br=109))
+    g = rr(0, 0, W, CAP, tl=222, tr=222, bl=222, br=222).difference(
+        rr(181, 152, 706, 550, tl=109, tr=109, bl=109, br=109))
     b0, b1 = 290, 290 + H                  # precka G (152)
-    g = g.difference(box(706, b1, W + 1, 550))
+    g = g.difference(box(705, b1, W + 1, 500))
     return U(g, box(W * 0.48, b0, 708, b1)), W
 
 
