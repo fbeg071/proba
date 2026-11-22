@@ -726,11 +726,28 @@ def nw_parenright(W):
 
 
 def p_ampersand(W=954):
-    # &: gornji luk otvoren desno, donji luk sa stablom desno, srednja greda ide do kraja (kao Archivo)
-    Ws, Wt, x0 = W * 0.68, W * 0.78, 90
-    up = rr(x0, _DM0, Wt, CAP, tl=_DA, bl=_DB).difference(rr(x0 + S, _DM1, Wt + 1, CAP - H, tl=48))
-    lo = rr(0, 0, Ws, _DM1, tl=_DA, bl=_DB, br=_DB).difference(rr(S, H, Ws - S, _DM0, bl=52, br=52))
-    return U(up, lo, box(Ws - S, _DM0, W, _DM1)), W
+    # &: osnova je broj 8 - zatvorena gornja petlja, donji luk otvoren desno, kosa noga
+    # od gornje petlje do donjeg desnog ugla (bez kraka). Odabrao vlasnik 22.11.2026.
+    R = 734
+    top = rr(70, _DM0, 600, CAP, tl=_DA, tr=_DA, bl=_DB, br=_DB).difference(
+        rr(70 + S, _DM1, 600 - S, CAP - H, tl=48, tr=48))
+    low = rr(0, 0, R, _DM1, tl=_DA, bl=_DB, br=_DB).difference(rr(S, H, R - S, _DM0, bl=52, br=52))
+    low = low.difference(box(R - S - 1, H, R + 1, _DM1 + 1))
+    PERP, xa = 165, 330
+    w = PERP
+    for _ in range(10):
+        w = PERP * math.hypot((W - w / 2) - xa, _DM1) / _DM1
+    leg = stroke((xa, _DM1), (W - w / 2, 0), w).intersection(box(0, 0, W, _DM1))
+    return U(top, low, leg).intersection(box(0, 0, W, CAP)), W
+
+
+def nw_at(W):
+    # @: prsten otvoren dolje desno, stablo unutrasnjeg "a" prelazi u donji dio prstena,
+    # desna greda prstena ide ravno do osnovne linije. Odabrao vlasnik 22.11.2026.
+    g, _ = stretch_to(p_at, W)()
+    g = affinity.translate(g, -g.bounds[0], 0)
+    st_r = W - (920 - 680)
+    return U(g.difference(box(st_r, -81, W + 1, 0)), box(W - 130, 0, W, 400)), W
 
 
 def p_dollar(sfn, W=653):
@@ -764,7 +781,7 @@ def p_greater(W=575):
     return affinity.scale(g, -1, 1, origin=(W / 2, 0)), W
 
 
-NUM_REBUILD = {'(': nw_parenleft, ')': nw_parenright, '1': nw_1, '4': nw_4, '7': nw_7, '/': nw_slash, '%': nw_percent, '*': nw_asterisk,
+NUM_REBUILD = {'@': nw_at, '(': nw_parenleft, ')': nw_parenright, '1': nw_1, '4': nw_4, '7': nw_7, '/': nw_slash, '%': nw_percent, '*': nw_asterisk,
                '#': nw_numbersign, '+': nw_plus}
 
 
