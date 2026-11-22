@@ -624,7 +624,10 @@ DIAG_LETTERS = set('AKMNVWXYZ')       # grade se u novoj sirini (debljine kosih 
 ARCHIVO_NW = {'0': 709, '1': 622, '2': 693, '3': 713, '4': 747, '5': 715, '6': 721, '7': 708, '8': 734, '9': 721,
               '.': 222, ',': 226, ':': 223, ';': 227, '!': 228, '?': 642, '-': 322, '+': 580, '=': 580, '/': 314,
               '%': 1044, "'": 174, '"': 423, '(': 291, ')': 291, '€': 742, '#': 720, '*': 381, '_': 668, '@': 1174}
-NUM_SPLIT = {'?': 0.64}    # mjesto rezanja (dio sirine) gdje nema stabla
+NUM_SPLIT = {'?': 0.64}
+# razmaci brojeva kao Archivo Expanded ExtraBold Italic: (lijevo, desno) od crteza bez nagiba
+ARCHIVO_DIGIT_SB = {'0': (0, 94), '1': (3, 93), '2': (4, 102), '3': (-2, 94), '4': (-22, 71), '5': (-3, 94),
+                    '6': (-1, 87), '7': (-31, 64), '8': (-3, 88), '9': (-6, 92)}    # mjesto rezanja (dio sirine) gdje nema stabla
 
 
 def _perp_w(perp, run_fn, rise):
@@ -854,13 +857,19 @@ def build(out_dir, family, logo_e):
     glyphs['.notdef'] = pen.glyph(); metrics['.notdef'] = (600, 60)
     for ch, fn in m.items():
         geom, W = fn()
-        if ch != ' ':
+        adv = int(W + 2 * SB) if ch != ' ' else W
+        if ch in ARCHIVO_DIGIT_SB:                    # brojevi: razmaci kao Archivo
+            l, r = ARCHIVO_DIGIT_SB[ch]
+            g0 = geom.buffer(0)
+            geom = affinity.translate(g0, l - g0.bounds[0], 0)
+            adv = int(round(l + (g0.bounds[2] - g0.bounds[0]) + r))
+            geom = affinity.skew(geom, xs=math.degrees(math.atan(SLANT)), origin=(0, 0))
+        elif ch != ' ':
             geom = affinity.translate(geom.buffer(0), SB, 0)
             geom = affinity.skew(geom, xs=math.degrees(math.atan(SLANT)), origin=(0, 0))
         name = 'space' if ch == ' ' else f'uni{ord(ch):04X}'
         order.append(name)
         glyphs[name] = to_glyph(geom)
-        adv = int(W + 2 * SB) if ch != ' ' else W
         xmin = int(geom.bounds[0]) if not geom.is_empty else 0
         metrics[name] = (adv, xmin)
         cmap[ord(ch)] = name
