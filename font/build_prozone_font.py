@@ -725,6 +725,45 @@ def nw_parenright(W):
     return affinity.scale(g, -1, 1, origin=(W / 2, 0)), W
 
 
+def p_ampersand(W=954):
+    # &: gornji luk otvoren desno, donji luk sa stablom desno, srednja greda ide do kraja (kao Archivo)
+    Ws, Wt, x0 = W * 0.68, W * 0.78, 90
+    up = rr(x0, _DM0, Wt, CAP, tl=_DA, bl=_DB).difference(rr(x0 + S, _DM1, Wt + 1, CAP - H, tl=48))
+    lo = rr(0, 0, Ws, _DM1, tl=_DA, bl=_DB, br=_DB).difference(rr(S, H, Ws - S, _DM0, bl=52, br=52))
+    return U(up, lo, box(Ws - S, _DM0, W, _DM1)), W
+
+
+def p_dollar(sfn, W=653):
+    # $: slovo S + kratke crte gore i dolje u sredini
+    g, _ = stretch_to(sfn, W)()
+    g = affinity.translate(g, -g.bounds[0], 0)
+    cx, t = W / 2, 110
+    return U(g, box(cx - t / 2, -90, cx + t / 2, 10), box(cx - t / 2, CAP - 10, cx + t / 2, CAP + 90)), W
+
+
+def p_bracketleft(W=255):
+    t = 130
+    return U(box(0, -120, S, CAP + 120), box(0, -120, W, -120 + t), box(0, CAP + 120 - t, W, CAP + 120)), W
+
+
+def p_bracketright(W=255):
+    g, _ = p_bracketleft(W)
+    return affinity.scale(g, -1, 1, origin=(W / 2, 0)), W
+
+
+def p_less(W=575, y0=-10, y1=569, perp=140):
+    ym = (y0 + y1) / 2
+    t = perp * math.hypot(W, y1 - ym) / W                 # vertikalna debljina kraka
+    a = Polygon([(0, ym + t / 2), (W, y1), (W, y1 - t), (0, ym - t / 2)])
+    b = Polygon([(0, ym - t / 2), (W, y0), (W, y0 + t), (0, ym + t / 2)])
+    return U(a, b), W
+
+
+def p_greater(W=575):
+    g, _ = p_less(W)
+    return affinity.scale(g, -1, 1, origin=(W / 2, 0)), W
+
+
 NUM_REBUILD = {'(': nw_parenleft, ')': nw_parenright, '1': nw_1, '4': nw_4, '7': nw_7, '/': nw_slash, '%': nw_percent, '*': nw_asterisk,
                '#': nw_numbersign, '+': nw_plus}
 
@@ -777,6 +816,8 @@ def build_map(logo_e):
               '?': p_question, '-': p_hyphen, '+': p_plus, '=': p_equal, '/': p_slash, '%': p_percent,
               "'": p_quotesingle, '"': p_quotedbl, '(': p_parenleft, ')': p_parenright, '€': p_euro,
               '#': p_numbersign, '*': p_asterisk, '_': p_underscore, '@': p_at})
+    m.update({'&': p_ampersand, '$': (lambda: p_dollar(caps['S'])), '[': p_bracketleft, ']': p_bracketright,
+              '<': p_less, '>': p_greater})
     for ch, w in ARCHIVO_NW.items():                       # sirine brojeva i znakova kao Archivo Expanded
         if ch == '€':
             m[ch] = (lambda w=w: nw_euro(caps['C'], w))
