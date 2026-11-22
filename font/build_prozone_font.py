@@ -99,8 +99,8 @@ def ring(W, h=CAP):
     return allr(0, 0, W, h, RO).difference(allr(S, H, W - S, h - H, RI))
 
 
-def g_A():
-    W = 880                                   # sirina kao N
+def g_A(W=880):
+                                  # sirina kao N
     top = 200                                 # ravan vrh
     xl = W / 2 - top / 2 + DIAG / 2           # gornji kraj sredisnje linije lijevog kraka
     left = stroke((DIAG / 2, 0), (xl, CAP), DIAG)
@@ -177,11 +177,10 @@ def g_J():
     return o.difference(box(-1, 270, S + 1, CAP + 1)), W
 
 
-def g_K():
+def g_K(W=780):
     # Varijanta 1 (odabrao vlasnik): gornji krak produzen do kraja u stablo (bez stepenika),
     # donji krak izlazi sa sredisnje linije gornjeg. Oba kraka okomite debljine PERP (~155),
     # kao ostale kose linije (A, V, X, Y ~154; M, N, Z ~160).
-    W = 780
     PERP = 155
     y0 = 160
     UP = 190
@@ -204,10 +203,9 @@ def g_L():
     return U(box(0, 0, S, CAP), box(0, 0, 690, H)), 690
 
 
-def g_M():
+def g_M(W=1100):
     # M u stilu N iz loga: stabla 181, kose linije iste okomite debljine kao N (~160),
     # krecu iz gornjih uglova kao kod N i spajaju se na baseline u sredini.
-    W = 1100
     T = 160                                        # okomita debljina kose linije (kao N)
     top_c, bot_c = 172, W / 2                      # sredisnja linija lijeve kose linije: vrh / dno
     w = T * math.sqrt(1 + ((bot_c - top_c) / CAP) ** 2)   # horizontalna debljina
@@ -275,23 +273,23 @@ def g_U():
     return rr(0, 0, W, CAP, bl=222, br=222).difference(rr(181, 152, 707, CAP + 1, bl=109, br=109)), W
 
 
-def g_V():
-    W = 820
-    v = U(stroke((DIAG / 2, CAP), (W / 2, 0), DIAG), stroke((W - DIAG / 2, CAP), (W / 2, 0), DIAG))
+def g_V(W=820):
+    w = DIAG
+    for _ in range(8):                             # okomita debljina ~154 i pri drugoj sirini
+        w = 154 * math.hypot(CAP, W / 2 - w / 2) / CAP
+    v = U(stroke((w / 2, CAP), (W / 2, 0), w), stroke((W - w / 2, CAP), (W / 2, 0), w))
     return band(v).intersection(box(0, 0, W, CAP)), W
 
 
-def g_W():
-    W = 1120
+def g_W(W=1120):
     w = DIAG
     parts = [stroke((w / 2, CAP), (W * 0.26, 0), w), stroke((W * 0.5, CAP), (W * 0.26, 0), w),
              stroke((W * 0.5, CAP), (W * 0.74, 0), w), stroke((W - w / 2, CAP), (W * 0.74, 0), w)]
     return band(U(*parts)).intersection(box(0, 0, W, CAP)), W
 
 
-def g_X():
+def g_X(W=820):
     # kose linije iste okomite debljine kao kod V (V: horizontalno DIAG, nagib (W_V/2 - DIAG/2) / CAP)
-    W = 820
     wv, Wv = DIAG, 820
     perp = wv * CAP / math.hypot(CAP, Wv / 2 - wv / 2)          # okomita debljina linije V (~154)
     w = DIAG
@@ -300,9 +298,8 @@ def g_X():
     return band(U(stroke((w / 2, CAP), (W - w / 2, 0), w), stroke((W - w / 2, CAP), (w / 2, 0), w))), W
 
 
-def g_Y():
+def g_Y(W=800):
     # krakovi iste okomite debljine kao kod X i V (~154)
-    W = 800
     y0 = 300
     perp = DIAG * CAP / math.hypot(CAP, 820 / 2 - DIAG / 2)   # okomita debljina V/X
     w = DIAG
@@ -352,17 +349,16 @@ def g_O():
     return allr(0, 0, W, CAP, 222).difference(allr(181, 152, 707, 550, 109)), W
 
 
-def g_Z():
-    W = 849
-    diag = Polygon([(0, 152), (292, 152), (W, 549), (576, 549)])
+def g_Z(W=849):
+    diag = Polygon([(0, 152), (292, 152), (W, 549), (W - 273, 549)])
     return U(box(0, 0, W, 152), box(0, 549, W, CAP), diag), W
 
 
-def g_N():
+def g_N(W=878):
     # kosa linija stanjena na debljinu kose linije Z (okomito ~160; u logu ~170)
-    W = 878
     d = 6.5
-    diag = Polygon([(65 + d, CAP), (279 - d, CAP), (813 - d, 0), (592 + d, 0)])
+    sh = W - 878                                   # pomak donjeg kraja kose linije kad se mijenja sirina
+    diag = Polygon([(65 + d, CAP), (279 - d, CAP), (813 - d + sh, 0), (592 + d + sh, 0)])
     return U(box(0, 0, 181, CAP), box(W - 181, 0, W, CAP), diag).intersection(box(0, 0, W, CAP)), W
 
 
@@ -387,8 +383,8 @@ def with_mark(fn, mark):
     return U(g, mark(W)), W
 
 
-def g_Dj():
-    g, W = g_D()
+def g_Dj(base=None):
+    g, W = (base or g_D)()
     return U(g, box(-70, MID - 60, S + 150, MID + 60)), W
 
 
@@ -617,6 +613,35 @@ def p_at():
 
 
 # ------------------------------------------------------------------- mapa
+# ------------------------------------------- sirine slova kao Archivo Expanded ExtraBold Italic
+# (sirina crteza bez nagiba, preracunato na visinu velikih slova 700). Odabrao vlasnik 22.11.2026.
+ARCHIVO_W = {'A': 919, 'B': 799, 'C': 852, 'D': 812, 'E': 739, 'F': 690, 'G': 901, 'H': 836, 'J': 648,
+             'K': 858, 'L': 658, 'M': 998, 'N': 835, 'O': 926, 'P': 775, 'Q': 926, 'R': 828, 'S': 792,
+             'T': 816, 'U': 822, 'V': 897, 'W': 1220, 'X': 919, 'Y': 902, 'Z': 792}
+DIAG_LETTERS = set('AKMNVWXYZ')       # grade se u novoj sirini (debljine kosih linija ostaju)
+
+
+def stretch_to(fn, target):
+    """Razvuci/suzi slovo po sredini na zadanu sirinu crteza; stabla, grede i lukovi ostaju isti."""
+    def wrapped():
+        g, W = fn()
+        x0, x1 = g.bounds[0], g.bounds[2]
+        dw = target - (x1 - x0)
+        c = (x0 + x1) / 2
+        if dw >= 0:
+            left = g.intersection(box(-5000, -5000, c, 5000))
+            right = g.intersection(box(c, -5000, 5000, 5000))
+            mid = g.intersection(box(c - 1, -5000, c + 1, 5000))
+            mid = affinity.scale(mid, xfact=(dw + 2) / 2, yfact=1, origin=(c - 1, 0))
+            g2 = U(left, affinity.translate(right, dw, 0), mid)
+        else:
+            left = g.intersection(box(-5000, -5000, c + dw / 2, 5000))
+            right = g.intersection(box(c - dw / 2, -5000, 5000, 5000))
+            g2 = U(left, affinity.translate(right, dw, 0))
+        return g2.buffer(0), W + dw
+    return wrapped
+
+
 def build_map(logo_e):
     m = {}
     caps = {c: globals()['g_' + c] for c in 'ABCDFGHIJKLMNOPQRSTUVWXYZ'}
@@ -624,13 +649,20 @@ def build_map(logo_e):
     if logo_e:   # Prozone Logo: P i R tacno kao u logu
         caps['P'] = lambda: g_P(True)
         caps['R'] = lambda: g_R(True)
+    keep = set('PROZNE') if logo_e else set()      # Prozone Logo: slova iz loga ostaju tacno kao u logu
+    for c in list(caps):
+        if c in ARCHIVO_W and c not in keep:
+            if c in DIAG_LETTERS:
+                caps[c] = (lambda c=c: globals()['g_' + c](ARCHIVO_W[c]))
+            else:
+                caps[c] = stretch_to(caps[c], ARCHIVO_W[c])
     for c, fn in caps.items():
         m[c] = fn
-    m['Č'] = lambda: with_mark(g_C, caron)
-    m['Ć'] = lambda: with_mark(g_C, acute)
-    m['Š'] = lambda: with_mark(g_S, caron)
-    m['Ž'] = lambda: with_mark(g_Z, caron)
-    m['Đ'] = g_Dj
+    m['Č'] = lambda: with_mark(caps['C'], caron)
+    m['Ć'] = lambda: with_mark(caps['C'], acute)
+    m['Š'] = lambda: with_mark(caps['S'], caron)
+    m['Ž'] = lambda: with_mark(caps['Z'], caron)
+    m['Đ'] = lambda: g_Dj(caps['D'])
     for d in '0123456789':
         m[d] = globals()['n_' + d]
     m.update({' ': p_space, '.': p_period, ',': p_comma, ':': p_colon, ';': p_semicolon, '!': p_exclam,
