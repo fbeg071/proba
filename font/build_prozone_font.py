@@ -620,14 +620,114 @@ ARCHIVO_W = {'A': 919, 'B': 799, 'C': 852, 'D': 812, 'E': 739, 'F': 690, 'G': 90
              'T': 816, 'U': 822, 'V': 897, 'W': 1220, 'X': 919, 'Y': 902, 'Z': 792}
 DIAG_LETTERS = set('AKMNVWXYZ')       # grade se u novoj sirini (debljine kosih linija ostaju)
 
+# brojevi i znakovi: sirine kao Archivo Expanded ExtraBold Italic (isto mjerenje). Odabrao vlasnik 22.11.2026.
+ARCHIVO_NW = {'0': 709, '1': 622, '2': 693, '3': 713, '4': 747, '5': 715, '6': 721, '7': 708, '8': 734, '9': 721,
+              '.': 222, ',': 226, ':': 223, ';': 227, '!': 228, '?': 642, '-': 322, '+': 580, '=': 580, '/': 314,
+              '%': 1044, "'": 174, '"': 423, '(': 291, ')': 291, '€': 742, '#': 720, '*': 381, '_': 668, '@': 1174}
+NUM_SPLIT = {'?': 0.64}    # mjesto rezanja (dio sirine) gdje nema stabla
 
-def stretch_to(fn, target):
-    """Razvuci/suzi slovo po sredini na zadanu sirinu crteza; stabla, grede i lukovi ostaju isti."""
+
+def _perp_w(perp, run_fn, rise):
+    """Horizontalna debljina kose linije za zadanu okomitu debljinu (run zavisi od debljine)."""
+    w = perp
+    for _ in range(12):
+        w = perp * math.hypot(run_fn(w), rise) / rise
+    return w
+
+
+def nw_1(W):
+    # 1 sa stopom (kao Archivo): stopa cijelom sirinom, stablo, zastavica
+    xs = W * 0.62 - S / 2
+    flag = Polygon([(xs, CAP), (xs, CAP - H - 20), (0, CAP - H - 120), (0, CAP - 120)])
+    return U(box(0, 0, W, H), box(xs, 0, xs + S, CAP), flag), W
+
+
+def nw_4(W):
+    st = box(W - S - 40, 0, W - 40, CAP)
+    bar = box(0, 200, W, 200 + H)
+    xt = W - S - 30
+    d = Polygon([(xt - 230, CAP), (xt, CAP), (230, 200 + H), (0, 200 + H)])
+    return U(st, bar, d).intersection(box(0, 0, W, CAP)), W
+
+
+def nw_7(W):
+    PERP = 155
+    xb = W * 0.40
+    w = 225
+    for _ in range(8):
+        xt = W - w / 2
+        w = PERP * math.hypot(xt - xb, CAP - H) / (CAP - H)
+    diag = stroke((W - w / 2, CAP - H), (xb, 0), w)
+    return U(box(0, CAP - H, W, CAP), diag).intersection(box(0, 0, W, CAP)), W
+
+
+def nw_slash(W):
+    rise = CAP + 80
+    perp = S * 1.3 * rise / math.hypot(520 - S * 1.3, rise)          # okomita debljina kao do sada
+    w = _perp_w(perp, lambda w: W - w, rise)
+    return band(stroke((w / 2, -40), (W - w / 2, CAP + 40), w), -40, CAP + 40).intersection(
+        box(0, -40, W, CAP + 40)), W
+
+
+def nw_percent(W):
+    a = allr(0, 400, 300, CAP, 60).difference(allr(90, 400 + 90, 210, CAP - 90, 20))
+    b = allr(W - 300, 0, W, 300, 60).difference(allr(W - 210, 90, W - 90, 210, 20))
+    perp = 150 * CAP / math.hypot(900 - 520, CAP)
+    w = _perp_w(perp, lambda w: W - 520, CAP)
+    return U(a, b, band(stroke((260, 0), (W - 260, CAP), w))), W
+
+
+def nw_asterisk(W):
+    lo, hi = 50, 400
+    for _ in range(30):                                   # duzina krakova tako da sirina bude W
+        L = (lo + hi) / 2
+        c = (0, 470)
+        g = U(*[affinity.rotate(box(-55, 470, 55, 470 + L), a, origin=c) for a in (0, 60, 120, 180, 240, 300)])
+        if g.bounds[2] - g.bounds[0] > W:
+            hi = L
+        else:
+            lo = L
+    return affinity.translate(g, -g.bounds[0], 0), W
+
+
+def nw_numbersign(W):
+    bars = U(box(0, 190, W, 190 + 125), box(0, 420, W, 420 + 125))
+    st = U(box(W * 0.24, 0, W * 0.24 + 160, CAP), box(W * 0.58, 0, W * 0.58 + 160, CAP))
+    return U(bars, st), W
+
+
+def nw_plus(W):
+    return U(box(0, _DM0, W, _DM1), box(W / 2 - S / 2, MID - W / 2, W / 2 + S / 2, MID + W / 2)), W
+
+
+def nw_euro(cfn, W):
+    c, Wc = stretch_to(cfn, W - 60)()
+    c = affinity.translate(c, 60 - c.bounds[0], 0)
+    bars = U(box(0, 390, (W - 60) * 0.62, 390 + 115), box(0, 195, (W - 60) * 0.62, 195 + 115))
+    return U(c, bars), W
+
+
+def nw_parenleft(W):
+    return rr(0, -120, W + 400, CAP + 120, tl=RO + 40, bl=RO + 40).difference(
+        rr(S, -120 + H, W + 401, CAP + 120 - H, tl=RI, bl=RI)).intersection(box(0, -130, W, CAP + 130)), W
+
+
+def nw_parenright(W):
+    g, _ = nw_parenleft(W)
+    return affinity.scale(g, -1, 1, origin=(W / 2, 0)), W
+
+
+NUM_REBUILD = {'(': nw_parenleft, ')': nw_parenright, '1': nw_1, '4': nw_4, '7': nw_7, '/': nw_slash, '%': nw_percent, '*': nw_asterisk,
+               '#': nw_numbersign, '+': nw_plus}
+
+
+def stretch_to(fn, target, split=0.5):
+    """Razvuci/suzi slovo po sredini (ili na mjestu split) na zadanu sirinu crteza; stabla, grede i lukovi ostaju isti."""
     def wrapped():
         g, W = fn()
         x0, x1 = g.bounds[0], g.bounds[2]
         dw = target - (x1 - x0)
-        c = (x0 + x1) / 2
+        c = x0 + (x1 - x0) * split
         if dw >= 0:
             left = g.intersection(box(-5000, -5000, c, 5000))
             right = g.intersection(box(c, -5000, 5000, 5000))
@@ -669,6 +769,13 @@ def build_map(logo_e):
               '?': p_question, '-': p_hyphen, '+': p_plus, '=': p_equal, '/': p_slash, '%': p_percent,
               "'": p_quotesingle, '"': p_quotedbl, '(': p_parenleft, ')': p_parenright, '€': p_euro,
               '#': p_numbersign, '*': p_asterisk, '_': p_underscore, '@': p_at})
+    for ch, w in ARCHIVO_NW.items():                       # sirine brojeva i znakova kao Archivo Expanded
+        if ch == '€':
+            m[ch] = (lambda w=w: nw_euro(caps['C'], w))
+        elif ch in NUM_REBUILD:
+            m[ch] = (lambda ch=ch, w=w: NUM_REBUILD[ch](w))
+        else:
+            m[ch] = stretch_to(m[ch], w, NUM_SPLIT.get(ch, 0.5))
     return m
 
 
