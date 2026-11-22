@@ -102,6 +102,7 @@ def ring(W, h=CAP):
 
 A_PERP = 185                                  # okomita debljina krakova A (kao stabla). Odabrao vlasnik 22.11.2026.
 VXY_PERP = 185                                # okomita debljina kosih linija V, X, Y
+DIAG_PERP = 185                               # okomita debljina kosih linija W, K, M, N, Z (Display). Odabrao vlasnik 22.11.2026.
 
 
 def g_A(W=880):
@@ -193,7 +194,7 @@ def g_K(W=780):
     # Varijanta 1 (odabrao vlasnik): gornji krak produzen do kraja u stablo (bez stepenika),
     # donji krak izlazi sa sredisnje linije gornjeg. Oba kraka okomite debljine PERP (~155),
     # kao ostale kose linije (A, V, X, Y ~154; M, N, Z ~160).
-    PERP = 155
+    PERP = DIAG_PERP
     y0 = 160
     UP = 190
     for _ in range(8):                             # horizontalna debljina gornjeg kraka za okomitu PERP
@@ -218,7 +219,7 @@ def g_L():
 def g_M(W=1100):
     # M u stilu N iz loga: stabla 181, kose linije iste okomite debljine kao N (~160),
     # krecu iz gornjih uglova kao kod N i spajaju se na baseline u sredini.
-    T = 160                                        # okomita debljina kose linije (kao N)
+    T = DIAG_PERP                                  # okomita debljina kose linije
     top_c, bot_c = 172, W / 2                      # sredisnja linija lijeve kose linije: vrh / dno
     w = T * math.sqrt(1 + ((bot_c - top_c) / CAP) ** 2)   # horizontalna debljina
     left = stroke((top_c, CAP), (bot_c, 0), w)
@@ -294,9 +295,12 @@ def g_V(W=820):
 
 
 def g_W(W=1120):
-    w = DIAG
-    parts = [stroke((w / 2, CAP), (W * 0.26, 0), w), stroke((W * 0.5, CAP), (W * 0.26, 0), w),
-             stroke((W * 0.5, CAP), (W * 0.74, 0), w), stroke((W - w / 2, CAP), (W * 0.74, 0), w)]
+    wo = DIAG
+    for _ in range(10):                            # vanjske kose linije, okomita debljina DIAG_PERP
+        wo = DIAG_PERP * math.hypot(W * 0.26 - wo / 2, CAP) / CAP
+    wi = DIAG_PERP * math.hypot(W * 0.24, CAP) / CAP   # unutrasnje kose linije
+    parts = [stroke((wo / 2, CAP), (W * 0.26, 0), wo), stroke((W * 0.5, CAP), (W * 0.26, 0), wi),
+             stroke((W * 0.5, CAP), (W * 0.74, 0), wi), stroke((W - wo / 2, CAP), (W * 0.74, 0), wo)]
     return band(U(*parts)).intersection(box(0, 0, W, CAP)), W
 
 
@@ -361,16 +365,24 @@ def g_O():
     return allr(0, 0, W, CAP, 222).difference(allr(181, 152, 707, 550, 109)), W
 
 
-def g_Z(W=849):
+def g_Z(W=849, perp=None):
     diag = Polygon([(0, 152), (292, 152), (W, 549), (W - 273, 549)])
+    if perp:                                       # Display: zadana okomita debljina, isti srednji pravac
+        cb, ct = 146, W - 136.5
+        h = perp * math.hypot(ct - cb, 549 - 152) / (549 - 152)
+        diag = Polygon([(cb - h / 2, 152), (cb + h / 2, 152), (ct + h / 2, 549), (ct - h / 2, 549)]).intersection(box(0, 0, W, CAP))
     return U(box(0, 0, W, 152), box(0, 549, W, CAP), diag), W
 
 
-def g_N(W=878):
+def g_N(W=878, perp=None):
     # kosa linija stanjena na debljinu kose linije Z (okomito ~160; u logu ~170)
     d = 6.5
     sh = W - 878                                   # pomak donjeg kraja kose linije kad se mijenja sirina
     diag = Polygon([(65 + d, CAP), (279 - d, CAP), (813 - d + sh, 0), (592 + d + sh, 0)])
+    if perp:                                       # Display: zadana okomita debljina, isti srednji pravac
+        ct, cb = 172, 702.5 + sh
+        h = perp * math.hypot(cb - ct, CAP) / CAP
+        diag = Polygon([(ct - h / 2, CAP), (ct + h / 2, CAP), (cb + h / 2, 0), (cb - h / 2, 0)])
     return U(box(0, 0, 181, CAP), box(W - 181, 0, W, CAP), diag).intersection(box(0, 0, W, CAP)), W
 
 
@@ -838,7 +850,8 @@ def build_map(logo_e):
     for c in list(caps):
         if c in ARCHIVO_W and c not in keep:
             if c in DIAG_LETTERS:
-                caps[c] = (lambda c=c: globals()['g_' + c](ARCHIVO_W[c]))
+                caps[c] = ((lambda c=c: globals()['g_' + c](ARCHIVO_W[c], perp=DIAG_PERP)) if c in 'NZ'
+                           else (lambda c=c: globals()['g_' + c](ARCHIVO_W[c])))
             else:
                 caps[c] = stretch_to(caps[c], ARCHIVO_W[c])
     for c, fn in caps.items():
