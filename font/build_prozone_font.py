@@ -978,22 +978,29 @@ def build(out_dir, family, logo_e):
             cmap[ord(low)] = name  # mala slova = velika (display font)
 
     cmap[0x00A0] = 'space'                         # neprelomni razmak
+    # WordPress automatski mijenja navodnike i crtice u tipografske - mapiraj ih na postojece znakove
+    for alias, base in ((0x2018, "'"), (0x2019, "'"), (0x201C, '"'), (0x201D, '"'), (0x2013, '-'), (0x2014, '-'),
+                        (0x201E, '"'), (0x201A, ',')):
+        if ord(base) in cmap:
+            cmap[alias] = cmap[ord(base)]
     fb = FontBuilder(UPM, isTTF=True)
     fb.setupGlyphOrder(order)
     fb.setupCharacterMap(cmap)
     fb.setupGlyf(glyphs)
     fb.setupHorizontalMetrics(metrics)
     fb.setupHorizontalHeader(ascent=980, descent=-220, caretSlopeRise=1000, caretSlopeRun=round(1000 * SLANT))
-    fb.setupNameTable({'familyName': family, 'styleName': 'Regular',
-                       'uniqueFontIdentifier': f'{family.replace(" ", "")}-Regular-1.000',
-                       'fullName': f'{family} Regular', 'psName': f'{family.replace(" ", "")}-Regular',
+    ps = f'{family.replace(" ", "")}-Italic'
+    fb.setupNameTable({'familyName': family, 'styleName': 'Italic',
+                       'uniqueFontIdentifier': f'{ps}-1.000',
+                       'fullName': f'{family} Italic', 'psName': ps,
                        'version': 'Version 1.000', 'copyright': '(c) 2026 PROZONE (prozone.ba)',
                        'licenseDescription': 'Vlasnistvo PROZONE. Slobodno za koristenje unutar PROZONE brenda.'},
                       mac=False)
     fb.setupOS2(sTypoAscender=980, sTypoDescender=-220, sTypoLineGap=0, usWinAscent=1000, usWinDescent=240,
-                sCapHeight=round(CAP * SCALE), sxHeight=round(CAP * SCALE), fsType=0, achVendID='PRZN',
+                sCapHeight=round(CAP * SCALE), sxHeight=round(CAP * SCALE), fsType=0, achVendID='PRZN', fsSelection=0x0001,   # Italic
                 ulCodePageRange1=(1 << 0) | (1 << 1))        # Latin 1 + Latin 2 (srednja Evropa)
     fb.setupPost(italicAngle=-round(math.degrees(math.atan(SLANT)), 1))
+    fb.font['head'].macStyle = 0x0002              # Italic
     add_kerning(fb.font, cmap)
     from fontTools.ttLib import newTable
     from fontTools.ttLib.tables import ttProgram
@@ -1003,7 +1010,7 @@ def build(out_dir, family, logo_e):
     gasp = newTable('gasp'); gasp.version = 1; gasp.gaspRange = {0xFFFF: 0x000F}
     fb.font['gasp'] = gasp
     fb.setupDummyDSIG = None
-    stem = family.replace(' ', '')
+    stem = ps
     ttf = Path(out_dir) / f'{stem}.ttf'
     fb.save(str(ttf))
     fb.font.flavor = 'woff2'
@@ -1014,5 +1021,5 @@ def build(out_dir, family, logo_e):
 if __name__ == '__main__':
     out = Path(sys.argv[1] if len(sys.argv) > 1 else '.')
     out.mkdir(parents=True, exist_ok=True)
-    for fam, logo in (('Prozone Display', False), ('Prozone Logo', True)):
+    for fam, logo in (('PROZONE', False), ('PROZONE Logo', True)):   # PROZONE Italic + PROZONE Logo Italic
         print('->', build(out, fam, logo))

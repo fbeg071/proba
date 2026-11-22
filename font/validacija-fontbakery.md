@@ -27,15 +27,15 @@ fontbakery version: 1.1.0
 * 🔥 **FAIL** <p>2 different Font Family names were found:</p>
 <ul>
 <li>
-<p>'Prozone Display' was found in:</p>
+<p>'PROZONE' was found in:</p>
 <ul>
-<li>ProzoneDisplay.ttf (nameID 1)</li>
+<li>PROZONE-Italic.ttf (nameID 1)</li>
 </ul>
 </li>
 <li>
-<p>'Prozone Logo' was found in:</p>
+<p>'PROZONE Logo' was found in:</p>
 <ul>
-<li>ProzoneLogo.ttf (nameID 1)</li>
+<li>PROZONELogo-Italic.ttf (nameID 1)</li>
 </ul>
 </li>
 </ul>
@@ -56,12 +56,12 @@ fontbakery version: 1.1.0
 
 
 
-* 🔥 **FAIL** <p>Italic font ProzoneDisplay.ttf has no matching Roman font.</p>
+* 🔥 **FAIL** <p>Italic font PROZONE-Italic.ttf has no matching Roman font.</p>
  [code: missing-roman]
 
 
 
-* 🔥 **FAIL** <p>Italic font ProzoneLogo.ttf has no matching Roman font.</p>
+* 🔥 **FAIL** <p>Italic font PROZONELogo-Italic.ttf has no matching Roman font.</p>
  [code: missing-roman]
 
 
@@ -79,7 +79,7 @@ fontbakery version: 1.1.0
 
 
 
-* 🔥 **FAIL** <p>Name ID 16 (Typographic Family name) is not consistent across fonts. Values found: ['Prozone Display', 'Prozone Logo']</p>
+* 🔥 **FAIL** <p>Name ID 16 (Typographic Family name) is not consistent across fonts. Values found: ['PROZONE', 'PROZONE Logo']</p>
  [code: incosistent-family-name]
 
 
@@ -89,7 +89,7 @@ fontbakery version: 1.1.0
 </div>
 </details>
 
-<details><summary>[1] ProzoneDisplay.ttf</summary>
+<details><summary>[1] PROZONE-Italic.ttf</summary>
 <div>
 <details>
     <summary>⚠️ <b>WARN</b> Check if each glyph has the recommended amount of contours. <a href="https://fontbakery.readthedocs.io/en/stable/fontbakery/checks/universal.html#contour-count">contour_count</a></summary>
@@ -124,7 +124,7 @@ fontbakery version: 1.1.0
 </div>
 </details>
 
-<details><summary>[1] ProzoneLogo.ttf</summary>
+<details><summary>[1] PROZONELogo-Italic.ttf</summary>
 <div>
 <details>
     <summary>⚠️ <b>WARN</b> Check if each glyph has the recommended amount of contours. <a href="https://fontbakery.readthedocs.io/en/stable/fontbakery/checks/universal.html#contour-count">contour_count</a></summary>
@@ -168,8 +168,8 @@ fontbakery version: 1.1.0
 
 | 💥 ERROR | ☠ FATAL | 🔥 FAIL | ⚠️ WARN | ⏩ SKIP | ℹ️ INFO | ✅ PASS | 🔎 DEBUG | 
 | ---|---|---|---|---|---|---|---|
-| 0 | 0 | 3 | 2 | 93 | 6 | 136 | 0 | 
-| 0% | 0% | 1% | 1% | 39% | 2% | 57% | 0% | 
+| 0 | 0 | 3 | 2 | 84 | 6 | 145 | 0 | 
+| 0% | 0% | 1% | 1% | 35% | 2% | 60% | 0% | 
 
 
 
