@@ -738,7 +738,14 @@ def p_ampersand(W=954):
     for _ in range(10):
         w = PERP * math.hypot((W - w / 2) - xa, _DM1) / _DM1
     leg = stroke((xa, _DM1), (W - w / 2, 0), w).intersection(box(0, 0, W, _DM1))
-    return U(top, low, leg).intersection(box(0, 0, W, CAP)), W
+    # donji krak prema gore desno (presijeca nogu), ravno odsjecen
+    xb, yt = W * 0.60, 400
+    w2 = PERP
+    for _ in range(10):
+        w2 = PERP * math.hypot((W - w2 / 2) - xb, yt) / yt
+    arm = stroke((xb, 0), (W - w2 / 2, yt), w2).intersection(box(0, 0, W, yt))
+    base = box(R - _DB - 20, 0, W, H).intersection(Polygon([(0, 0), (W, 0), (xa + w / 2, _DM1), (0, _DM1)]))                # popuni dno izmedju luka i kraka
+    return U(top, low, leg, arm, base).intersection(box(0, 0, W, CAP)), W
 
 
 def nw_at(W):
