@@ -1,0 +1,48 @@
+/* PROZONE Italic - fontovi za prozone.ba
+   Fajlove iz foldera fonts/ postaviti u: wp-content/themes/flatsome-child/fonts/
+   Ovaj CSS dodati na kraj style.css u flatsome-child temi.
+   Font je vec kos (italic), zato su deklarisana oba stila (normal i italic) sa istim fajlom,
+   da browser ne bi dodatno vjestacki nagnuo slova. */
+
+@font-face {
+  font-family: 'PROZONE';
+  src: url('fonts/PROZONE-Italic.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'PROZONE';
+  src: url('fonts/PROZONE-Italic.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'PROZONE Logo';
+  src: url('fonts/PROZONELogo-Italic.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'PROZONE Logo';
+  src: url('fonts/PROZONELogo-Italic.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Upotreba - naslovi u PROZONE fontu (font ima samo velika slova; mala se prikazuju kao velika) */
+h1, h2, h3,
+.section-title,
+.product-title,
+.banner h2, .banner h3 {
+  font-family: 'PROZONE', 'Archivo', Arial, sans-serif;
+  font-synthesis: none;
+  letter-spacing: 0;
+}
+
+/* Klasa za rucnu upotrebu, npr. <span class="prozone-font">-20% AKCIJA</span> */
+.prozone-font { font-family: 'PROZONE', Arial, sans-serif; font-synthesis: none; }
+.prozone-logo-font { font-family: 'PROZONE Logo', Arial, sans-serif; font-synthesis: none; }
